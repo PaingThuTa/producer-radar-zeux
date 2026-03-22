@@ -2,10 +2,12 @@
  * POST /api/discovery/placement
  * Body: { urls: string[] }
  *
- * For each Genius song URL, calls the official Genius API to extract producer_artists,
- * fetches their social links, deduplicates against the DB, and saves new producers.
+ * For each Genius song URL, calls the official Genius API to extract producer_artists
+ * and fetches their social links. Returns all discovered producers with an isDuplicate
+ * flag for those already in the DB. Does NOT save — saving is done by the UI after
+ * the user reviews and confirms the selection.
  *
- * Returns: { found, added, duplicates, songResults }
+ * Returns: { producers, songResults }
  */
 
 import { prisma } from '@/lib/db';
@@ -127,15 +129,16 @@ export default async function handler(req, res) {
             instagram,
             song: songTitle,
             artist: artistName,
+            isDuplicate: existingNames.has(key),
           });
         } else {
           // Merge song info for producers found across multiple URLs
-          const existing = discoveredProducers.get(key);
-          if (songTitle && !existing.song.includes(songTitle)) {
-            existing.song = existing.song ? `${existing.song}, ${songTitle}` : songTitle;
+          const found = discoveredProducers.get(key);
+          if (songTitle && !found.song.includes(songTitle)) {
+            found.song = found.song ? `${found.song}, ${songTitle}` : songTitle;
           }
-          if (!existing.instagram && instagram) {
-            existing.instagram = instagram;
+          if (!found.instagram && instagram) {
+            found.instagram = instagram;
           }
         }
       }
@@ -151,35 +154,8 @@ export default async function handler(req, res) {
     }
   }
 
-  // Save new (non-duplicate) producers
-  let added = 0;
-  let duplicates = 0;
-
-  for (const [key, producer] of discoveredProducers) {
-    if (existingNames.has(key)) {
-      duplicates++;
-      continue;
-    }
-
-    await prisma.placementProducer.create({
-      data: {
-        name: producer.name,
-        instagram: producer.instagram || null,
-        song: producer.song || null,
-        artist: producer.artist || null,
-        source: 'Genius API',
-        status: 'por contactar',
-      },
-    });
-
-    existingNames.add(key);
-    added++;
-  }
-
   return res.status(200).json({
-    found: discoveredProducers.size,
-    added,
-    duplicates,
+    producers: [...discoveredProducers.values()],
     songResults,
   });
 }

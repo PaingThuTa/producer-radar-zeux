@@ -72,96 +72,54 @@ describe('POST /api/discovery/placement', () => {
     const res = makeRes();
     await handler(req, res);
     expect(res._status).toBe(200);
-    expect(res._json.found).toBe(0);
-    expect(res._json.added).toBe(0);
+    expect(res._json.producers).toHaveLength(0);
   });
 
-  test('extracts producers and saves new ones', async () => {
+  test('returns discovered producers without saving', async () => {
     process.env.GENIUS_TOKEN = 'test-token';
 
-    // Mock search response
-    const searchResponse = {
-      response: {
-        hits: [{
-          type: 'song',
-          result: { id: 42, title: "God's Plan", primary_artist: { name: 'Drake' } },
-        }],
-      },
-    };
-
-    // Mock song detail response
-    const songResponse = {
-      response: {
-        song: {
-          id: 42,
-          title: "God's Plan",
-          primary_artist: { name: 'Drake' },
-          producer_artists: [{ id: 101, name: 'Boi-1da' }],
-        },
-      },
-    };
-
-    // Mock artist detail response
-    const artistResponse = {
-      response: {
-        artist: { id: 101, name: 'Boi-1da', instagram_name: 'boi1da' },
-      },
-    };
-
     global.fetch
-      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(searchResponse) })
-      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(songResponse) })
-      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(artistResponse) });
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({
+        response: { hits: [{ type: 'song', result: { id: 42, title: "God's Plan", primary_artist: { name: 'Drake' } } }] },
+      })})
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({
+        response: { song: { id: 42, title: "God's Plan", primary_artist: { name: 'Drake' }, producer_artists: [{ id: 101, name: 'Boi-1da' }] } },
+      })})
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({
+        response: { artist: { id: 101, name: 'Boi-1da', instagram_name: 'boi1da' } },
+      })});
 
     prisma.placementProducer.findMany.mockResolvedValue([]);
-    prisma.placementProducer.create.mockResolvedValue({ id: '1', name: 'Boi-1da' });
 
     const req = makeReq({ urls: ['https://genius.com/Drake-gods-plan-lyrics'] });
     const res = makeRes();
     await handler(req, res);
 
     expect(res._status).toBe(200);
-    expect(res._json.found).toBe(1);
-    expect(res._json.added).toBe(1);
-    expect(res._json.duplicates).toBe(0);
-    expect(prisma.placementProducer.create).toHaveBeenCalledWith({
-      data: expect.objectContaining({
-        name: 'Boi-1da',
-        instagram: 'https://instagram.com/boi1da',
-        source: 'Genius API',
-        status: 'por contactar',
-      }),
+    expect(res._json.producers).toHaveLength(1);
+    expect(res._json.producers[0]).toMatchObject({
+      name: 'Boi-1da',
+      instagram: 'https://instagram.com/boi1da',
+      isDuplicate: false,
     });
+    // API must NOT save — saving is deferred to the UI
+    expect(prisma.placementProducer.create).not.toHaveBeenCalled();
   });
 
-  test('counts existing producers as duplicates, does not re-insert', async () => {
+  test('flags existing producers as isDuplicate', async () => {
     process.env.GENIUS_TOKEN = 'test-token';
 
-    const searchResponse = {
-      response: {
-        hits: [{ type: 'song', result: { id: 42, title: "God's Plan", primary_artist: { name: 'Drake' } } }],
-      },
-    };
-    const songResponse = {
-      response: {
-        song: {
-          id: 42,
-          title: "God's Plan",
-          primary_artist: { name: 'Drake' },
-          producer_artists: [{ id: 101, name: 'Boi-1da' }],
-        },
-      },
-    };
-    const artistResponse = {
-      response: { artist: { id: 101, name: 'Boi-1da', instagram_name: null } },
-    };
-
     global.fetch
-      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(searchResponse) })
-      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(songResponse) })
-      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(artistResponse) });
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({
+        response: { hits: [{ type: 'song', result: { id: 42, title: "God's Plan", primary_artist: { name: 'Drake' } } }] },
+      })})
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({
+        response: { song: { id: 42, title: "God's Plan", primary_artist: { name: 'Drake' }, producer_artists: [{ id: 101, name: 'Boi-1da' }] } },
+      })})
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({
+        response: { artist: { id: 101, name: 'Boi-1da', instagram_name: null } },
+      })});
 
-    // Producer already exists in DB
     prisma.placementProducer.findMany.mockResolvedValue([{ name: 'Boi-1da' }]);
 
     const req = makeReq({ urls: ['https://genius.com/Drake-gods-plan-lyrics'] });
@@ -169,9 +127,7 @@ describe('POST /api/discovery/placement', () => {
     await handler(req, res);
 
     expect(res._status).toBe(200);
-    expect(res._json.found).toBe(1);
-    expect(res._json.added).toBe(0);
-    expect(res._json.duplicates).toBe(1);
+    expect(res._json.producers[0].isDuplicate).toBe(true);
     expect(prisma.placementProducer.create).not.toHaveBeenCalled();
   });
 
@@ -190,8 +146,7 @@ describe('POST /api/discovery/placement', () => {
     await handler(req, res);
 
     expect(res._status).toBe(200);
-    expect(res._json.found).toBe(0);
-    expect(res._json.added).toBe(0);
+    expect(res._json.producers).toHaveLength(0);
     expect(res._json.songResults[0].skipped).toBe(true);
   });
 
@@ -210,7 +165,6 @@ describe('POST /api/discovery/placement', () => {
     await handler(req, res);
 
     expect(Array.isArray(res._json.songResults)).toBe(true);
-    expect(res._json.songResults).toHaveLength(1);
     expect(res._json.songResults[0].url).toBe('https://genius.com/Some-song-lyrics');
   });
 });
