@@ -14,40 +14,10 @@ self.__BUILD_MANIFEST = {
       "static/chunks/main.js",
       "static/chunks/pages/404.js"
     ],
-    "/Connections": [
-      "static/chunks/webpack.js",
-      "static/chunks/main.js",
-      "static/chunks/pages/Connections.js"
-    ],
-    "/DailyContacts": [
-      "static/chunks/webpack.js",
-      "static/chunks/main.js",
-      "static/chunks/pages/DailyContacts.js"
-    ],
     "/Dashboard": [
       "static/chunks/webpack.js",
       "static/chunks/main.js",
       "static/chunks/pages/Dashboard.js"
-    ],
-    "/Discovery": [
-      "static/chunks/webpack.js",
-      "static/chunks/main.js",
-      "static/chunks/pages/Discovery.js"
-    ],
-    "/MessageGenerator": [
-      "static/chunks/webpack.js",
-      "static/chunks/main.js",
-      "static/chunks/pages/MessageGenerator.js"
-    ],
-    "/PlacementProducers": [
-      "static/chunks/webpack.js",
-      "static/chunks/main.js",
-      "static/chunks/pages/PlacementProducers.js"
-    ],
-    "/YouTubeProducers": [
-      "static/chunks/webpack.js",
-      "static/chunks/main.js",
-      "static/chunks/pages/YouTubeProducers.js"
     ],
     "/_app": [
       "static/chunks/webpack.js",
@@ -58,11 +28,6 @@ self.__BUILD_MANIFEST = {
       "static/chunks/webpack.js",
       "static/chunks/main.js",
       "static/chunks/pages/_error.js"
-    ],
-    "/login": [
-      "static/chunks/webpack.js",
-      "static/chunks/main.js",
-      "static/chunks/pages/login.js"
     ]
   },
   "ampFirstPages": []
