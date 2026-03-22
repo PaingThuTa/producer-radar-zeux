@@ -41,3 +41,10 @@ body {
   border-color: var(--border) !important;
   color: var(--text-primary) !important;
 }
+
+/* Global placeholder visibility fix */
+input::placeholder,
+textarea::placeholder {
+  color: #71717a !important;
+  opacity: 1;
+}

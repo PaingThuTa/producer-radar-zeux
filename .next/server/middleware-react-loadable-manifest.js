@@ -1,1 +1,1 @@
-self.__REACT_LOADABLE_MANIFEST="{}"
+self.__REACT_LOADABLE_MANIFEST="{\"src/components/shared/ProducerProfile.jsx -> sonner\":{\"id\":\"src/components/shared/ProducerProfile.jsx -> sonner\",\"files\":[]}}"

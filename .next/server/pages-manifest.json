@@ -2,10 +2,9 @@
   "/_app": "pages/_app.js",
   "/_error": "pages/_error.js",
   "/_document": "pages/_document.js",
-  "/404": "pages/404.js",
-  "/Dashboard": "pages/Dashboard.js",
-  "/api/youtube-producers": "pages/api/youtube-producers.js",
-  "/api/placement-producers": "pages/api/placement-producers.js",
-  "/api/discovery-logs": "pages/api/discovery-logs.js",
-  "/api/auth/[...nextauth]": "pages/api/auth/[...nextauth].js"
+  "/MessageGenerator": "pages/MessageGenerator.js",
+  "/api/auth/[...nextauth]": "pages/api/auth/[...nextauth].js",
+  "/Discovery": "pages/Discovery.js",
+  "/PlacementProducers": "pages/PlacementProducers.js",
+  "/404": "pages/404.js"
 }

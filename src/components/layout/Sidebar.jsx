@@ -26,7 +26,7 @@ const navItems = [
   { path: '/MessageGenerator', label: 'Message Generator', icon: MessageSquare },
 ];
 
-export default function Sidebar({ collapsed, onToggle }) {
+export default function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose }) {
   const router = useRouter();
   const location = { pathname: router.pathname };
 
@@ -34,7 +34,13 @@ export default function Sidebar({ collapsed, onToggle }) {
     <aside className={cn(
       "fixed left-0 top-0 h-screen z-50 flex flex-col transition-all duration-300 ease-in-out",
       "bg-[#18181b] border-r border-[#27272a]",
-      collapsed ? "w-[68px]" : "w-[240px]"
+      // Mobile: full width, slide in/out
+      "w-[240px]",
+      "translate-x-[-100%] md:translate-x-0",
+      mobileOpen && "translate-x-0",
+      // Desktop: collapsible
+      !mobileOpen && "md:w-[240px]",
+      collapsed && "md:w-[68px]"
     )}>
       {/* Logo */}
       <div className="flex items-center gap-3 px-4 h-16 border-b border-[#27272a]">
@@ -57,6 +63,7 @@ export default function Sidebar({ collapsed, onToggle }) {
             <Link
               key={path}
               href={path}
+              onClick={onMobileClose}
               className={cn(
                 "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group",
                 isActive 

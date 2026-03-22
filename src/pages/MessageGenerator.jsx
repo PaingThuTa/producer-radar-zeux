@@ -1,6 +1,4 @@
 import React, { useState } from 'react';
-import { api as base44 } from '@/lib/api-client';
-import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -22,11 +20,6 @@ export default function MessageGenerator() {
   const [offerType, setOfferType] = useState('loops');
   const [messages, setMessages] = useState([]);
   const [generating, setGenerating] = useState(false);
-
-  const { data: ytProducers = [] } = useQuery({
-    queryKey: ['youtube-producers'],
-    queryFn: () => base44.entities.YouTubeProducer.list('-priority_score', 100),
-  });
 
   const generateMessages = async () => {
     setGenerating(true);
@@ -75,16 +68,12 @@ export default function MessageGenerator() {
 
           <div>
             <label className="text-xs text-[#71717a] mb-1.5 block">Producer Name</label>
-            <Select value={producerName} onValueChange={setProducerName}>
-              <SelectTrigger className="bg-[#0f0f10] border-[#27272a] text-white text-sm">
-                <SelectValue placeholder="Select or type producer name" />
-              </SelectTrigger>
-              <SelectContent className="bg-[#1e1e22] border-[#27272a] max-h-[200px]">
-                {ytProducers.filter(p => p.status === 'por contactar').map(p => (
-                  <SelectItem key={p.id} value={p.name} className="text-white">{p.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Input
+              value={producerName}
+              onChange={e => setProducerName(e.target.value)}
+              placeholder="e.g., Metro Boomin, Murda Beatz"
+              className="bg-[#0f0f10] border-[#27272a] text-white text-sm"
+            />
           </div>
 
           <div>
