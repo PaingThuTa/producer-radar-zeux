@@ -3,6 +3,7 @@
 @tailwind utilities;
 
 :root {
+  --radius: 0.5rem;
   --bg-primary: #0f0f10;
   --bg-panel: #18181b;
   --bg-elevated: #1e1e22;

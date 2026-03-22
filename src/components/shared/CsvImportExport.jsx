@@ -319,7 +319,7 @@ function MappingModal({ headers, dbFields, initialMapping, existingProducers, ra
                   <select
                     value={mapping[h] || '__ignore__'}
                     onChange={e => setMapping(m => ({ ...m, [h]: e.target.value }))}
-                    className="bg-[#18181b] border border-[#27272a] text-white text-xs rounded-md px-2 py-1.5 outline-none focus:border-[#3f3f46]"
+                    className="bg-[#18181b] border border-[#27272a] text-white text-xs rounded-lg px-2 py-1.5 outline-none focus:border-[#3f3f46]"
                   >
                     <option value="__ignore__">— Ignore —</option>
                     {dbFields.map(f => (

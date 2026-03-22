@@ -20,7 +20,7 @@ export default function Pagination({ page, totalPages, onPageChange }) {
         <button
           disabled={page === 1}
           onClick={() => onPageChange(page - 1)}
-          className="p-1.5 rounded-md text-[#71717a] hover:text-white hover:bg-[#27272a] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+          className="p-1.5 rounded-lg text-[#71717a] hover:text-white hover:bg-[#27272a] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
         >
           <ChevronLeft className="w-4 h-4" />
         </button>
@@ -31,7 +31,7 @@ export default function Pagination({ page, totalPages, onPageChange }) {
             <button
               key={p}
               onClick={() => onPageChange(p)}
-              className={`w-8 h-8 rounded-md text-sm font-medium transition-colors ${
+              className={`w-8 h-8 rounded-lg text-sm font-medium transition-colors ${
                 p === page
                   ? 'bg-[#2563eb] text-white'
                   : 'text-[#71717a] hover:text-white hover:bg-[#27272a]'
@@ -44,7 +44,7 @@ export default function Pagination({ page, totalPages, onPageChange }) {
         <button
           disabled={page === totalPages}
           onClick={() => onPageChange(page + 1)}
-          className="p-1.5 rounded-md text-[#71717a] hover:text-white hover:bg-[#27272a] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+          className="p-1.5 rounded-lg text-[#71717a] hover:text-white hover:bg-[#27272a] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
         >
           <ChevronRight className="w-4 h-4" />
         </button>

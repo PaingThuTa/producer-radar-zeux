@@ -110,7 +110,7 @@ export default function Dashboard() {
                     <PriorityBar score={p.priority || 0} max={10} />
                     <StatusBadge status={p.status || 'por contactar'} />
                     <button onClick={() => setEditProducer({ ...p, _type: pType })}
-                      className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded hover:bg-[#27272a] text-[#71717a] hover:text-white">
+                      className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-lg hover:bg-[#27272a] text-[#71717a] hover:text-white">
                       <Pencil className="w-3.5 h-3.5" />
                     </button>
                   </div>
@@ -227,7 +227,7 @@ export default function Dashboard() {
                   <div className="flex items-center gap-2">
                     <PriorityBar score={p.priority || 0} max={10} />
                     <button onClick={() => setEditProducer({ ...p, _type: pType })}
-                      className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded hover:bg-[#27272a] text-[#71717a] hover:text-white">
+                      className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-lg hover:bg-[#27272a] text-[#71717a] hover:text-white">
                       <Pencil className="w-3.5 h-3.5" />
                     </button>
                   </div>

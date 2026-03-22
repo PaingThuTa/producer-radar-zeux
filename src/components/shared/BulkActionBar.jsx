@@ -56,7 +56,7 @@ export default function BulkActionBar({ selectedCount, onClearSelection, onBulkU
           </Select>
           {bulkStatus && (
             <button onClick={applyStatus}
-              className="h-7 px-2.5 bg-[#1e1e22] hover:bg-[#27272a] text-[#a1a1aa] hover:text-white rounded-md text-xs transition-colors border border-[#2a2a2d]">
+              className="h-7 px-2.5 bg-[#1e1e22] hover:bg-[#27272a] text-[#a1a1aa] hover:text-white rounded-lg text-xs transition-colors border border-[#2a2a2d]">
               Apply
             </button>
           )}
@@ -74,7 +74,7 @@ export default function BulkActionBar({ selectedCount, onClearSelection, onBulkU
           </Select>
           {bulkStyle && (
             <button onClick={applyStyle}
-              className="h-7 px-2.5 bg-[#1e1e22] hover:bg-[#27272a] text-[#a1a1aa] hover:text-white rounded-md text-xs transition-colors border border-[#2a2a2d]">
+              className="h-7 px-2.5 bg-[#1e1e22] hover:bg-[#27272a] text-[#a1a1aa] hover:text-white rounded-lg text-xs transition-colors border border-[#2a2a2d]">
               Apply
             </button>
           )}
@@ -85,14 +85,14 @@ export default function BulkActionBar({ selectedCount, onClearSelection, onBulkU
         {/* Delete */}
         {!confirmDelete ? (
           <button onClick={() => setConfirmDelete(true)}
-            className="flex items-center gap-1 h-7 px-2.5 text-[#52525b] hover:text-red-400 text-xs transition-colors rounded-md hover:bg-red-500/5">
+            className="flex items-center gap-1 h-7 px-2.5 text-[#52525b] hover:text-red-400 text-xs transition-colors rounded-lg hover:bg-red-500/5">
             <Trash2 className="w-3 h-3" /> Delete
           </button>
         ) : (
           <div className="flex items-center gap-2">
             <span className="text-xs text-[#71717a]">Delete {selectedCount}?</span>
             <button onClick={() => { onBulkDelete(); setConfirmDelete(false); }}
-              className="h-7 px-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-md text-xs transition-colors border border-red-500/10">
+              className="h-7 px-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg text-xs transition-colors border border-red-500/10">
               Confirm
             </button>
             <button onClick={() => setConfirmDelete(false)}

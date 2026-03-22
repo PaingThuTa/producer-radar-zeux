@@ -87,7 +87,7 @@ export default function Connections() {
         <button
           onClick={() => setActiveTab('youtube')}
           className={cn(
-            "flex items-center gap-2 px-4 py-1.5 rounded-md text-sm font-medium transition-all",
+            "flex items-center gap-2 px-4 py-1.5 rounded-lg text-sm font-medium transition-all",
             activeTab === 'youtube'
               ? "bg-[#27272a] text-white"
               : "text-[#71717a] hover:text-white"
@@ -107,7 +107,7 @@ export default function Connections() {
         <button
           onClick={() => setActiveTab('placement')}
           className={cn(
-            "flex items-center gap-2 px-4 py-1.5 rounded-md text-sm font-medium transition-all",
+            "flex items-center gap-2 px-4 py-1.5 rounded-lg text-sm font-medium transition-all",
             activeTab === 'placement'
               ? "bg-[#27272a] text-white"
               : "text-[#71717a] hover:text-white"

@@ -60,7 +60,7 @@ function DynamicSelect({ label, value, storeKey, onValueChange, options: customO
       {label && <label className="text-xs text-[#71717a] mb-1.5 block">{label}</label>}
       <div className="relative">
         <button type="button" onClick={() => setOpen(o => !o)}
-          className="w-full h-9 px-3 flex items-center justify-between bg-[#0f0f10] border border-[#27272a] rounded-md text-sm text-white hover:border-[#3f3f46] transition-colors">
+          className="w-full h-9 px-3 flex items-center justify-between bg-[#0f0f10] border border-[#27272a] rounded-lg text-sm text-white hover:border-[#3f3f46] transition-colors">
           <span className={value ? 'text-white capitalize' : 'text-[#3f3f46]'}>{value || 'Select...'}</span>
           <span className="text-[#52525b] text-xs">▾</span>
         </button>
@@ -69,7 +69,7 @@ function DynamicSelect({ label, value, storeKey, onValueChange, options: customO
             <div className="p-2 border-b border-[#27272a]">
               <input autoFocus value={inputVal} onChange={e => setInputVal(e.target.value)}
                 onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); showCreate ? createAndSelect() : filtered[0] && selectOption(filtered[0]); } }}
-                placeholder="Search..." className="w-full bg-[#0f0f10] border border-[#27272a] rounded-md px-2 py-1.5 text-sm text-white outline-none placeholder:text-[#3f3f46]" />
+                placeholder="Search..." className="w-full bg-[#0f0f10] border border-[#27272a] rounded-lg px-2 py-1.5 text-sm text-white outline-none placeholder:text-[#3f3f46]" />
             </div>
             <div className="max-h-48 overflow-y-auto py-1">
               {filtered.map(opt => (
@@ -118,7 +118,7 @@ function MultiTagSelect({ label, value, storeKey, onChange }) {
   return (
     <div ref={ref}>
       {label && <label className="text-xs text-[#71717a] mb-1.5 block">{label}</label>}
-      <div className="bg-[#0f0f10] border border-[#27272a] rounded-md px-3 py-2 min-h-[38px] cursor-text hover:border-[#3f3f46] transition-colors" onClick={() => setOpen(true)}>
+      <div className="bg-[#0f0f10] border border-[#27272a] rounded-lg px-3 py-2 min-h-[38px] cursor-text hover:border-[#3f3f46] transition-colors" onClick={() => setOpen(true)}>
         <div className="flex flex-wrap gap-1.5 mb-1">
           {tags.map(tag => (
             <span key={tag} className="flex items-center gap-1 px-2 py-0.5 bg-[#27272a] text-[#a1a1aa] rounded text-xs font-medium">
@@ -164,7 +164,7 @@ function HighlightsInput({ value, onChange }) {
   const removeTag = (tag) => onChange(tags.filter(t => t !== tag).join(', '));
 
   return (
-    <div className="bg-[#0f0f10] border border-[#27272a] rounded-md px-3 py-2 min-h-[38px]">
+    <div className="bg-[#0f0f10] border border-[#27272a] rounded-lg px-3 py-2 min-h-[38px]">
       <div className="flex flex-wrap gap-1.5 mb-1.5">
         {tags.map(tag => (
           <span key={tag} className="flex items-center gap-1 px-2 py-0.5 bg-[#2563eb]/15 border border-[#2563eb]/30 text-[#60a5fa] rounded text-xs font-medium">

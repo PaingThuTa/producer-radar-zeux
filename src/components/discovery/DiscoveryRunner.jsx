@@ -280,7 +280,7 @@ export default function DiscoveryRunner() {
         <div className="flex flex-wrap gap-2 mb-4">
           {defaultQueries.map(q => (
             <button key={q} onClick={() => !running && runDiscovery(q)} disabled={running}
-              className="px-3 py-1.5 bg-[#27272a] hover:bg-[#3f3f46] text-[#a1a1aa] hover:text-white rounded-full text-xs font-medium transition-colors disabled:opacity-50">
+              className="px-3 py-1.5 bg-[#27272a] hover:bg-[#3f3f46] text-[#a1a1aa] hover:text-white rounded-lg text-xs font-medium transition-colors disabled:opacity-50">
               {q}
             </button>
           ))}
@@ -292,12 +292,12 @@ export default function DiscoveryRunner() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#71717a]" />
             <Input value={customQuery} onChange={e => setCustomQuery(e.target.value)}
               placeholder="Custom search query..."
-              className="pl-10 bg-[#0f0f10] border-[#27272a] text-white text-sm rounded-full"
+              className="pl-10 bg-[#0f0f10] border-[#27272a] text-white text-sm rounded-lg"
               onKeyDown={e => e.key === 'Enter' && customQuery && !running && runDiscovery(customQuery)}
             />
           </div>
           <Button onClick={() => customQuery && runDiscovery(customQuery)} disabled={running || !customQuery}
-            className="bg-[#2563eb] hover:bg-[#3b82f6] text-white rounded-full" size="sm">
+            className="bg-[#2563eb] hover:bg-[#3b82f6] text-white rounded-lg" size="sm">
             {running ? <Loader2 className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4" />}
           </Button>
           <Button onClick={runAllQueries} disabled={running} variant="outline" size="sm"
