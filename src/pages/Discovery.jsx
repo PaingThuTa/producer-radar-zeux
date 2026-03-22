@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api as base44 } from '@/lib/api-client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Radar, Play, Loader2, Youtube, Music2, Trash2 } from 'lucide-react';
+import { Radar, Play, Loader2, Youtube, Music2, Trash2, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 import StatusBadge from '@/components/shared/StatusBadge';
@@ -42,6 +42,17 @@ export default function Discovery() {
       <div>
         <h1 className="text-2xl font-bold text-white">Discovery</h1>
         <p className="text-[#71717a] text-sm mt-1">Search YouTube type beats and song credits for producers</p>
+      </div>
+
+      {/* YouTube API Warning */}
+      <div className="flex items-start gap-3 rounded-xl border border-amber-500/30 bg-amber-500/10 px-5 py-4">
+        <AlertTriangle className="w-5 h-5 text-amber-400 mt-0.5 shrink-0" />
+        <div>
+          <p className="text-sm font-semibold text-amber-300">YouTube Discovery — Under Maintenance</p>
+          <p className="text-xs text-amber-400/80 mt-0.5">
+            YouTube API key has not been received yet. This feature is temporarily unavailable.
+          </p>
+        </div>
       </div>
 
       {/* YouTube Discovery */}
