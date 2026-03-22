@@ -38,9 +38,20 @@ function calculatePriority(producer) {
   return Math.min(10, Math.max(1, Math.round(base)));
 }
 
-// Stage 1: Deep extraction — stubbed until OpenRouter integration is added
+// Stage 1: Scrape Genius page for producer credits and song metadata
 async function extractFromGeniusUrl(url) {
-  return { url, found: false, producers: [], song_title: '', artist: '' };
+  try {
+    const res = await fetch('/api/discovery/genius-scrape', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url }),
+    });
+    if (!res.ok) return { url, found: false, producers: [], song_title: '', artist: '' };
+    const data = await res.json();
+    return { url, ...data };
+  } catch {
+    return { url, found: false, producers: [], song_title: '', artist: '' };
+  }
 }
 
 // Normalize Instagram: always return full URL or empty string

@@ -131,10 +131,10 @@ export default function PlacementProducers() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#71717a]" />
           <Input value={search} onChange={e => setSearch(e.target.value)}
             placeholder="Search by name or artist..."
-            className="pl-10 bg-[#18181b] border-[#27272a] text-white text-sm" />
+            className="pl-10 bg-[#18181b] border-[#27272a] text-white text-sm rounded-full" />
         </div>
         <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-[160px] bg-[#18181b] border-[#27272a] text-white text-sm">
+          <SelectTrigger className="w-[160px] bg-[#18181b] border-[#27272a] text-white text-sm rounded-full">
             <SelectValue placeholder="Status" />
           </SelectTrigger>
           <SelectContent className="bg-[#1e1e22] border-[#27272a]">
