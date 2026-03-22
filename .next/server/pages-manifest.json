@@ -2,9 +2,6 @@
   "/_app": "pages/_app.js",
   "/_error": "pages/_error.js",
   "/_document": "pages/_document.js",
-  "/MessageGenerator": "pages/MessageGenerator.js",
-  "/api/auth/[...nextauth]": "pages/api/auth/[...nextauth].js",
-  "/Discovery": "pages/Discovery.js",
-  "/PlacementProducers": "pages/PlacementProducers.js",
-  "/404": "pages/404.js"
+  "/YouTubeProducers": "pages/YouTubeProducers.js",
+  "/Dashboard": "pages/Dashboard.js"
 }

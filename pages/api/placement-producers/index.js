@@ -9,17 +9,25 @@ function parseSort(sortParam) {
 
 export default async function handler(req, res) {
   if (req.method === 'GET') {
-    const { sort, limit } = req.query;
-    const producers = await prisma.placementProducer.findMany({
-      orderBy: parseSort(sort),
-      take: limit ? parseInt(limit) : undefined,
-    });
-    return res.status(200).json(producers);
+    try {
+      const { sort, limit } = req.query;
+      const producers = await prisma.placementProducer.findMany({
+        orderBy: parseSort(sort),
+        take: limit ? parseInt(limit) : undefined,
+      });
+      return res.status(200).json(producers);
+    } catch (e) {
+      return res.status(500).json({ error: e.message });
+    }
   }
 
   if (req.method === 'POST') {
-    const producer = await prisma.placementProducer.create({ data: req.body });
-    return res.status(201).json(producer);
+    try {
+      const producer = await prisma.placementProducer.create({ data: req.body });
+      return res.status(201).json(producer);
+    } catch (e) {
+      return res.status(500).json({ error: e.message });
+    }
   }
 
   res.status(405).end();

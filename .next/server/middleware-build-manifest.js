@@ -9,20 +9,15 @@ self.__BUILD_MANIFEST = {
   "lowPriorityFiles": [],
   "rootMainFiles": [],
   "pages": {
-    "/404": [
+    "/Dashboard": [
       "static/chunks/webpack.js",
       "static/chunks/main.js",
-      "static/chunks/pages/404.js"
+      "static/chunks/pages/Dashboard.js"
     ],
-    "/MessageGenerator": [
+    "/YouTubeProducers": [
       "static/chunks/webpack.js",
       "static/chunks/main.js",
-      "static/chunks/pages/MessageGenerator.js"
-    ],
-    "/PlacementProducers": [
-      "static/chunks/webpack.js",
-      "static/chunks/main.js",
-      "static/chunks/pages/PlacementProducers.js"
+      "static/chunks/pages/YouTubeProducers.js"
     ],
     "/_app": [
       "static/chunks/webpack.js",

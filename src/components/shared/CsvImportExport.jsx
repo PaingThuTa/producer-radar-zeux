@@ -462,10 +462,27 @@ export default function CsvImportExport({ producers, entity, type = 'youtube', o
       return;
     }
 
+    try {
+
     toast.loading(`Loading existing records…`, { id: 'csv-import-progress' });
 
-    // Load ALL existing records (SDK supports up to 5000 per call)
-    const allExisting = await entity.list('-created_date', 5000);
+    let allExisting;
+    try {
+      allExisting = await entity.list('-created_date', 5000);
+    } catch (e) {
+      toast.dismiss('csv-import-progress');
+      toast.error('Failed to connect to database — check your DATABASE_URL');
+      setImporting(false);
+      return;
+    }
+
+    if (!Array.isArray(allExisting)) {
+      toast.dismiss('csv-import-progress');
+      toast.error('Unexpected response from server — import aborted');
+      setImporting(false);
+      return;
+    }
+
     const igToRecord = new Map(
       allExisting.filter(p => p.instagram).map(p => [igKey(p.instagram), p])
     );
@@ -530,7 +547,12 @@ export default function CsvImportExport({ producers, entity, type = 'youtube', o
     toast.success(`Import done — ${created} created, ${updated} updated${failed > 0 ? `, ${failed} failed` : ''}`);
     setImporting(false);
     onImportComplete?.();
-  };
+  } catch (err) {
+    toast.dismiss('csv-import-progress');
+    toast.error(`Import failed — ${err.message || 'unknown error'}`);
+    setImporting(false);
+  }
+};
 
   return (
     <>
