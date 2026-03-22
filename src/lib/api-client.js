@@ -24,6 +24,9 @@ const makeEntityClient = (path) => ({
   delete: (id) => fetch(`/api/${path}/${id}`, {
     method: 'DELETE',
   }).then(checkOk),
+  deleteAll: () => fetch(`/api/${path}`, {
+    method: 'DELETE',
+  }).then(checkOk),
 });
 
 export const api = {

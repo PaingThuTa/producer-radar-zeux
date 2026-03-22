@@ -30,5 +30,14 @@ export default async function handler(req, res) {
     }
   }
 
+  if (req.method === 'DELETE') {
+    try {
+      await prisma.youTubeProducer.deleteMany({});
+      return res.status(200).json({ deleted: true });
+    } catch (e) {
+      return res.status(500).json({ error: e.message });
+    }
+  }
+
   res.status(405).end();
 }

@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Download, Upload, Loader2, X, Check, AlertTriangle } from 'lucide-react';
+import { Download, Upload, Loader2, X, Check, AlertTriangle, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -392,9 +392,26 @@ export default function CsvImportExport({ producers, entity, type = 'youtube', o
   const fileRef = useRef(null);
   const [importing, setImporting] = useState(false);
   const [mappingState, setMappingState] = useState(null); // { headers, rows, initialMapping }
+  const [confirmClear, setConfirmClear] = useState(false);
+  const [clearing, setClearing] = useState(false);
 
   const dbFields = type === 'youtube' ? YOUTUBE_FIELDS : PLACEMENT_FIELDS;
   const defaultSource = type === 'youtube' ? 'YouTube' : 'Placements';
+
+  // ── Clear All ─────────────────────────────────────────────────────────────
+  const handleClearAll = async () => {
+    setClearing(true);
+    try {
+      await entity.deleteAll();
+      toast.success('All data cleared');
+      onImportComplete?.();
+    } catch (e) {
+      toast.error(`Failed to clear data — ${e.message}`);
+    } finally {
+      setClearing(false);
+      setConfirmClear(false);
+    }
+  };
 
   // ── Export ────────────────────────────────────────────────────────────────
   const handleExport = () => {
@@ -577,6 +594,37 @@ export default function CsvImportExport({ producers, entity, type = 'youtube', o
           {importing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
           Import Producers from CSV
         </Button>
+        {!confirmClear ? (
+          <Button
+            onClick={() => setConfirmClear(true)}
+            disabled={producers.length === 0 || importing}
+            variant="outline"
+            size="sm"
+            className="border-[#27272a] text-red-400 hover:text-red-300 hover:bg-[#27272a] gap-1.5"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+            Clear All Data
+          </Button>
+        ) : (
+          <div className="flex items-center gap-1.5 border border-red-800 rounded-md px-3 py-1.5 bg-red-950/30">
+            <span className="text-xs text-red-400">Delete all {producers.length} records?</span>
+            <button
+              onClick={() => setConfirmClear(false)}
+              className="text-xs text-[#71717a] hover:text-white ml-1"
+            >
+              Cancel
+            </button>
+            <Button
+              onClick={handleClearAll}
+              disabled={clearing}
+              size="sm"
+              className="h-6 px-2 text-xs bg-red-700 hover:bg-red-600 text-white gap-1"
+            >
+              {clearing ? <Loader2 className="w-3 h-3 animate-spin" /> : null}
+              Confirm
+            </Button>
+          </div>
+        )}
         <input ref={fileRef} type="file" accept=".csv" className="hidden" onChange={handleFileChange} />
       </div>
 
