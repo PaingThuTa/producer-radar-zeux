@@ -1,0 +1,77 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model YouTubeProducer {
+  id                    String   @id @default(cuid())
+  name                  String
+  youtube_channel       String?
+  youtube_channel_url   String?
+  youtube_subscribers   Int?
+  video_title           String?
+  video_url             String?
+  followers_ig          Int?
+  instagram             String?
+  email                 String?
+  phone                 String?
+  highlights_placements String?
+  notes                 String?
+  style                 String?
+  source                String?  @default("Manual")
+  status                String?  @default("por contactar")
+  priority              Int?     @default(5)
+  priority_score        Int?
+  next_follow_up        String?
+  last_action           String?
+  que_enviar            String?
+  donde_enviar          String?
+  re_dms                String?
+  relacion              Int?
+  favorite              Boolean? @default(false)
+  created_date          DateTime @default(now())
+}
+
+model PlacementProducer {
+  id                    String   @id @default(cuid())
+  name                  String
+  song                  String?
+  artist                String?
+  instagram             String?
+  email                 String?
+  phone                 String?
+  style                 String?
+  source                String?  @default("Manual")
+  status                String?  @default("por contactar")
+  priority              Int?     @default(5)
+  priority_score        Int?
+  next_follow_up        String?
+  last_action           String?
+  que_enviar            String?
+  donde_enviar          String?
+  re_dms                String?
+  notes                 String?
+  highlights_placements String?
+  followers_ig          Int?
+  youtube_channel       String?
+  youtube_channel_url   String?
+  relacion              Int?
+  favorite              Boolean? @default(false)
+  created_date          DateTime @default(now())
+}
+
+model DiscoveryLog {
+  id                 String   @id @default(cuid())
+  query              String
+  source             String?
+  status             String?
+  producers_found    Int?     @default(0)
+  producers_added    Int?     @default(0)
+  duplicates_skipped Int?     @default(0)
+  filtered_out       Int?     @default(0)
+  created_date       DateTime @default(now())
+}
