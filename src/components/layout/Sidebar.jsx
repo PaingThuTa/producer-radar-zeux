@@ -1,18 +1,20 @@
 import React from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { 
-  LayoutDashboard, 
-  Youtube, 
-  Music2, 
-  Radar, 
-  Users, 
+import {
+  LayoutDashboard,
+  Youtube,
+  Music2,
+  Radar,
+  Users,
   MessageSquare,
   Handshake,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  LogOut
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { signOut } from 'next-auth/react';
 
 const navItems = [
   { path: '/Dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -70,6 +72,17 @@ export default function Sidebar({ collapsed, onToggle }) {
           );
         })}
       </nav>
+
+      {/* Logout */}
+      <button
+        onClick={() => signOut({ callbackUrl: '/login' })}
+        className={cn(
+          "flex items-center gap-3 px-3 py-2.5 mx-2 mb-1 rounded-lg transition-colors text-[#71717a] hover:text-red-400 hover:bg-red-400/5"
+        )}
+      >
+        <LogOut className="w-[18px] h-[18px] flex-shrink-0" />
+        {!collapsed && <span className="text-[13px] font-medium">Logout</span>}
+      </button>
 
       {/* Collapse toggle */}
       <button
