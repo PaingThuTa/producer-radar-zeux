@@ -57,6 +57,26 @@ export default async function handler(req, res) {
     videoDescMap[v.id] = v.snippet?.description || '';
   }
 
+  async function scrapeInstagramFromAboutPage(handle) {
+    try {
+      const res = await fetch(`https://www.youtube.com/@${handle}/about`, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+          'Accept-Language': 'en-US,en;q=0.9',
+        },
+      });
+      if (!res.ok) return '';
+      const html = await res.text();
+      const match = html.match(/ytInitialData\s*=\s*(\{.+?\});\s*<\/script>/s);
+      if (!match) return '';
+      const str = JSON.stringify(JSON.parse(match[1]));
+      const igMatch = str.match(/instagram\.com\/([a-zA-Z0-9._]{2,30})(?:["\/?])/i);
+      return igMatch ? igMatch[1] : '';
+    } catch {
+      return '';
+    }
+  }
+
   function extractInstagramFromDescription(description) {
     if (!description) return '';
     const patterns = [
@@ -106,6 +126,21 @@ export default async function handler(req, res) {
       instagram,
     };
   });
+
+  // Enrich producers missing Instagram via About page scraping (max 5, sequential)
+  const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+  const scrapeWithTimeout = (handle) =>
+    Promise.race([
+      scrapeInstagramFromAboutPage(handle),
+      new Promise(resolve => setTimeout(() => resolve(''), 6000)),
+    ]);
+
+  const toScrape = producers.filter(p => !p.instagram).slice(0, 5);
+  for (const p of toScrape) {
+    const handle = p.channel_url.replace('https://youtube.com/@', '');
+    p.instagram = await scrapeWithTimeout(handle);
+    await sleep(400);
+  }
 
   return res.status(200).json({ producers, nextPageToken: searchData.nextPageToken || null });
 }
