@@ -44,9 +44,10 @@ export default async function handler(req, res) {
   function extractInstagramFromDescription(description) {
     if (!description) return '';
     const patterns = [
-      /instagram\.com\/([a-zA-Z0-9._]{2,30})/i,
-      /ig[:\s]+@?([a-zA-Z0-9._]{2,30})/i,
-      /insta[:\s]+@?([a-zA-Z0-9._]{2,30})/i,
+      /instagram\.com\/@?([a-zA-Z0-9._]{2,30})(?:[?\/\s]|$)/i,
+      /\binstagram[:\s]+@?([a-zA-Z0-9._]{2,30})/i,
+      /\big[:\s]+@?([a-zA-Z0-9._]{2,30})/i,
+      /\binsta[:\s]+@?([a-zA-Z0-9._]{2,30})/i,
     ];
     for (const pat of patterns) {
       const m = description.match(pat);

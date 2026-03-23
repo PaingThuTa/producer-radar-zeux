@@ -65,46 +65,14 @@ function parseSubscribers(subStr) {
   return parseInt(s) || 0;
 }
 
-// ─── Priority scoring ────────────────────────────────────────────────────────
-function placementScore(placementsText) {
-  if (!placementsText) return 0;
-  const t = placementsText.toLowerCase();
-  const tier10 = ['drake', 'juice wrld', 'nba youngboy', 'lil baby', 'future', 'lil uzi'];
-  const tier8 = ['polo g', 'rod wave', 'nocap', 'rylo rodriguez', 'fivio foreign', 'lil tjay'];
-  const tier5 = ['yungbleu', 'toosii', 'jackboy', 'morray', 'big30', 'pooh shiesty'];
-  if (tier10.some(a => t.includes(a))) return 10;
-  if (tier8.some(a => t.includes(a))) return 8;
-  if (tier5.some(a => t.includes(a))) return 5;
-  if (t.length > 5) return 3;
-  return 0;
-}
-
-function normalizeFollowers(followers) {
-  if (!followers || followers < 50) return 0;
-  if (followers < 1000) return 2;
-  if (followers < 5000) return 5;
-  if (followers < 10000) return 7;
-  if (followers < 15000) return 8;
-  return 9;
-}
-
-function ytSubscriberScore(subs) {
-  if (!subs || subs < 5000) return 1;   // low
-  if (subs < 50000) return 2;            // mid
-  return 3;                              // high
-}
-
-function calculatePriority(producer) {
-  const ps = placementScore(producer.highlights_placements);
-  const gs = producer.genius_score ?? ps;  // use genius_score if set, else fall back to placement score
-  const fs = normalizeFollowers(producer.followers_ig);
-  const ys = ytSubscriberScore(producer.youtube_subscribers);
-  // 60% genius/placement, 20% IG followers, 20% YouTube subscribers
-  let base = gs * 0.6 + fs * 0.2 + ys * 0.2;
-  if (producer.instagram && producer.email) base += 0.8;
-  else if (producer.instagram) base += 0.3;
-  else base -= 0.5;
-  return Math.min(10, Math.max(1, Math.round(base)));
+// ─── Priority scoring (subscriber-based, 1–5) ────────────────────────────────
+function calculatePriority(ytSubscribers) {
+  const subs = ytSubscribers || 0;
+  if (subs < 1000)   return 1;
+  if (subs < 10000)  return 2;
+  if (subs < 100000) return 3;
+  if (subs < 500000) return 4;
+  return 5;
 }
 
 // AI contact extraction — stubbed until OpenRouter integration is added
@@ -210,7 +178,9 @@ export default function DiscoveryRunner() {
             source: 'YouTube',
             status: 'por contactar',
           };
-          producerData.priority_score = calculatePriority(producerData);
+          const score = calculatePriority(ytSubscribers);
+          producerData.priority_score = score;
+          producerData.priority = score;
 
           await base44.entities.YouTubeProducer.create(producerData);
           existingNames.add(producerName.toLowerCase());

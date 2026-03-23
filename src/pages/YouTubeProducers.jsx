@@ -15,11 +15,20 @@ import { toast } from 'sonner';
 
 const statuses = ['all', 'por contactar', 'contactado', 'follow up 1', 'follow up 2', 'follow up 3', 'follow up 4', 'follow up 5', 'connection', 'archivado', 'eliminado'];
 const styles = ['all', 'Juice WRLD', 'Polo G', 'Rod Wave', 'NBA YoungBoy', 'Melodic Trap', 'Emo Trap', 'Emotional Guitars', 'Other'];
+const subRanges = [
+  { label: 'All Subscribers', value: 'all' },
+  { label: '< 1K', value: 'lt1k' },
+  { label: '1K – 10K', value: '1k-10k' },
+  { label: '10K – 100K', value: '10k-100k' },
+  { label: '100K – 500K', value: '100k-500k' },
+  { label: '500K+', value: 'gt500k' },
+];
 
 export default function YouTubeProducers() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [styleFilter, setStyleFilter] = useState('all');
+  const [subFilter, setSubFilter] = useState('all');
   const [selected, setSelected] = useState(null);
   const [showAdd, setShowAdd] = useState(false);
   const [selectedIds, setSelectedIds] = useState(new Set());
@@ -57,7 +66,14 @@ export default function YouTubeProducers() {
     const matchSearch = !search || p.name?.toLowerCase().includes(search.toLowerCase()) || p.instagram?.toLowerCase().includes(search.toLowerCase());
     const matchStatus = statusFilter === 'all' || p.status === statusFilter;
     const matchStyle = styleFilter === 'all' || p.style === styleFilter;
-    return matchSearch && matchStatus && matchStyle;
+    const s = p.youtube_subscribers || 0;
+    const matchSubs = subFilter === 'all' ||
+      (subFilter === 'lt1k' && s < 1000) ||
+      (subFilter === '1k-10k' && s >= 1000 && s < 10000) ||
+      (subFilter === '10k-100k' && s >= 10000 && s < 100000) ||
+      (subFilter === '100k-500k' && s >= 100000 && s < 500000) ||
+      (subFilter === 'gt500k' && s >= 500000);
+    return matchSearch && matchStatus && matchStyle && matchSubs;
   });
 
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
@@ -66,7 +82,7 @@ export default function YouTubeProducers() {
   const handlePageChange = (p) => { setPage(p); window.scrollTo({ top: 0, behavior: 'smooth' }); };
 
   // Reset to page 1 when filters change
-  useEffect(() => { setPage(1); }, [search, statusFilter, styleFilter]);
+  useEffect(() => { setPage(1); }, [search, statusFilter, styleFilter, subFilter]);
 
   const toggleSelect = (id) => {
     setSelectedIds(prev => {
@@ -152,6 +168,14 @@ export default function YouTubeProducers() {
           </SelectTrigger>
           <SelectContent className="bg-[#1e1e22] border-[#27272a]">
             {styles.map(s => <SelectItem key={s} value={s} className="text-white">{s === 'all' ? 'All Styles' : s}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        <Select value={subFilter} onValueChange={setSubFilter}>
+          <SelectTrigger className="w-[160px] bg-[#18181b] border-[#27272a] text-white text-sm">
+            <SelectValue placeholder="Subscribers" />
+          </SelectTrigger>
+          <SelectContent className="bg-[#1e1e22] border-[#27272a]">
+            {subRanges.map(r => <SelectItem key={r.value} value={r.value} className="text-white">{r.label}</SelectItem>)}
           </SelectContent>
         </Select>
       </div>
