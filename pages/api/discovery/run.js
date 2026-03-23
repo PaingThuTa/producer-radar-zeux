@@ -38,8 +38,24 @@ export default async function handler(req, res) {
   channelUrl.searchParams.set('part', 'statistics,snippet,brandingSettings');
   channelUrl.searchParams.set('id', channelIds.join(','));
 
-  const channelRes = await fetch(channelUrl.toString());
+  // Batch fetch video descriptions for IG extraction fallback
+  const videoIds = searchData.items.map(item => item.id.videoId).filter(Boolean);
+  const videoApiUrl = new URL('https://www.googleapis.com/youtube/v3/videos');
+  videoApiUrl.searchParams.set('key', YOUTUBE_API_KEY);
+  videoApiUrl.searchParams.set('part', 'snippet');
+  videoApiUrl.searchParams.set('id', videoIds.join(','));
+
+  const [channelRes, videoRes] = await Promise.all([
+    fetch(channelUrl.toString()),
+    fetch(videoApiUrl.toString()),
+  ]);
   const channelData = await channelRes.json();
+  const videoData = await videoRes.json();
+
+  const videoDescMap = {};
+  for (const v of videoData.items || []) {
+    videoDescMap[v.id] = v.snippet?.description || '';
+  }
 
   function extractInstagramFromDescription(description) {
     if (!description) return '';
@@ -58,11 +74,10 @@ export default async function handler(req, res) {
 
   const channelMap = {};
   for (const ch of channelData.items || []) {
-    const description = ch.brandingSettings?.channel?.description || '';
     channelMap[ch.id] = {
       subscriberCount: parseInt(ch.statistics?.subscriberCount || '0'),
       customUrl: ch.snippet?.customUrl || '',
-      instagram: extractInstagramFromDescription(description),
+      description: ch.brandingSettings?.channel?.description || ch.snippet?.description || '',
     };
   }
 
@@ -76,6 +91,9 @@ export default async function handler(req, res) {
     const handle = channelInfo.customUrl
       ? channelInfo.customUrl.replace(/^@/, '')
       : channelId;
+    const instagram =
+      extractInstagramFromDescription(channelInfo.description || '') ||
+      extractInstagramFromDescription(videoDescMap[videoId] || '');
 
     return {
       producer_name: channelName,
@@ -85,7 +103,7 @@ export default async function handler(req, res) {
       video_url: `https://youtube.com/watch?v=${videoId}`,
       channel_subscribers: channelInfo.subscriberCount || 0,
       estimated_ig_followers: 0,
-      instagram: channelInfo.instagram || '',
+      instagram,
     };
   });
 

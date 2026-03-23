@@ -15,6 +15,7 @@ import { toast } from 'sonner';
 
 const statuses = ['all', 'por contactar', 'contactado', 'follow up 1', 'follow up 2', 'follow up 3', 'follow up 4', 'follow up 5', 'connection', 'archivado', 'eliminado'];
 const styles = ['all', 'Juice WRLD', 'Polo G', 'Rod Wave', 'NBA YoungBoy', 'Melodic Trap', 'Emo Trap', 'Emotional Guitars', 'Other'];
+const ytPriorities = ['all', '1', '2', '3', '4', '5'];
 const subRanges = [
   { label: 'All Subscribers', value: 'all' },
   { label: '< 1K', value: 'lt1k' },
@@ -29,6 +30,7 @@ export default function YouTubeProducers() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [styleFilter, setStyleFilter] = useState('all');
   const [subFilter, setSubFilter] = useState('all');
+  const [priorityFilter, setPriorityFilter] = useState('all');
   const [selected, setSelected] = useState(null);
   const [showAdd, setShowAdd] = useState(false);
   const [selectedIds, setSelectedIds] = useState(new Set());
@@ -73,7 +75,8 @@ export default function YouTubeProducers() {
       (subFilter === '10k-100k' && s >= 10000 && s < 100000) ||
       (subFilter === '100k-500k' && s >= 100000 && s < 500000) ||
       (subFilter === 'gt500k' && s >= 500000);
-    return matchSearch && matchStatus && matchStyle && matchSubs;
+    const matchPriority = priorityFilter === 'all' || p.priority === parseInt(priorityFilter);
+    return matchSearch && matchStatus && matchStyle && matchSubs && matchPriority;
   });
 
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
@@ -82,7 +85,7 @@ export default function YouTubeProducers() {
   const handlePageChange = (p) => { setPage(p); window.scrollTo({ top: 0, behavior: 'smooth' }); };
 
   // Reset to page 1 when filters change
-  useEffect(() => { setPage(1); }, [search, statusFilter, styleFilter, subFilter]);
+  useEffect(() => { setPage(1); }, [search, statusFilter, styleFilter, subFilter, priorityFilter]);
 
   const toggleSelect = (id) => {
     setSelectedIds(prev => {
@@ -178,6 +181,18 @@ export default function YouTubeProducers() {
             {subRanges.map(r => <SelectItem key={r.value} value={r.value} className="text-white">{r.label}</SelectItem>)}
           </SelectContent>
         </Select>
+        <Select value={priorityFilter} onValueChange={setPriorityFilter}>
+          <SelectTrigger className="w-[140px] bg-[#18181b] border-[#27272a] text-white text-sm">
+            <SelectValue placeholder="Priority" />
+          </SelectTrigger>
+          <SelectContent className="bg-[#1e1e22] border-[#27272a]">
+            {ytPriorities.map(p => (
+              <SelectItem key={p} value={p} className="text-white">
+                {p === 'all' ? 'All Priorities' : `Priority ${p}`}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       <BulkActionBar
@@ -190,7 +205,7 @@ export default function YouTubeProducers() {
 
       <ProducerTable
         producers={paginated}
-        columns={['name', 'instagram', 'youtube', 'style', 'status', 'priority']}
+        columns={['name', 'instagram', 'youtube', 'subscribers', 'style', 'status', 'priority']}
         producerType="youtube"
         onRowClick={handleRowClick}
         selectedIds={selectedIds}

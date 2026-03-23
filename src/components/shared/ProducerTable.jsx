@@ -73,12 +73,13 @@ export default function ProducerTable({
     lastClickedIdx.current = idx;
   };
 
-  const maxPriority = producerType === 'youtube' ? 8 : 10;
+  const maxPriority = producerType === 'youtube' ? 5 : 10;
 
   const colLabels = {
     name: 'Name',
     instagram: 'Instagram',
     youtube: 'YouTube',
+    subscribers: 'Subscribers',
     style: 'Style',
     placements: 'Placements',
     priority: 'Priority',
@@ -173,6 +174,14 @@ export default function ProducerTable({
                           ) : <span className="text-[#3f3f46] text-sm">—</span>}
                         </span>
                       )}
+                      {col === 'subscribers' && (() => {
+                        const n = producer.youtube_subscribers;
+                        if (!n) return <span className="text-[#3f3f46] text-sm">—</span>;
+                        const fmt = n >= 1_000_000 ? `${(n / 1_000_000).toFixed(1)}M`
+                          : n >= 1_000 ? `${(n / 1_000).toFixed(1)}K`
+                          : String(n);
+                        return <span className="text-sm text-[#a1a1aa] tabular-nums">{fmt}</span>;
+                      })()}
                       {col === 'style' && <StyleTag value={producer.style} />}
                       {col === 'placements' && (
                         placements.length > 0 ? (

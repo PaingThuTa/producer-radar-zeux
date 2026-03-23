@@ -14,10 +14,12 @@ import CsvImportExport from '@/components/shared/CsvImportExport';
 import { toast } from 'sonner';
 
 const statuses = ['all', 'por contactar', 'contactado', 'follow up 1', 'follow up 2', 'follow up 3', 'follow up 4', 'follow up 5', 'connection', 'archivado', 'eliminado'];
+const plPriorities = ['all', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
 
 export default function PlacementProducers() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [priorityFilter, setPriorityFilter] = useState('all');
   const [selected, setSelected] = useState(null);
   const [showAdd, setShowAdd] = useState(false);
   const [selectedIds, setSelectedIds] = useState(new Set());
@@ -54,7 +56,8 @@ export default function PlacementProducers() {
     if (statusFilter === 'all' && HIDDEN.includes(p.status)) return false;
     const matchSearch = !search || p.name?.toLowerCase().includes(search.toLowerCase()) || p.artist?.toLowerCase().includes(search.toLowerCase());
     const matchStatus = statusFilter === 'all' || p.status === statusFilter;
-    return matchSearch && matchStatus;
+    const matchPriority = priorityFilter === 'all' || p.priority === parseInt(priorityFilter);
+    return matchSearch && matchStatus && matchPriority;
   });
 
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
@@ -62,7 +65,7 @@ export default function PlacementProducers() {
 
   const handlePageChange = (p) => { setPage(p); window.scrollTo({ top: 0, behavior: 'smooth' }); };
 
-  useEffect(() => { setPage(1); }, [search, statusFilter]);
+  useEffect(() => { setPage(1); }, [search, statusFilter, priorityFilter]);
 
   const toggleSelect = (id) => {
     setSelectedIds(prev => {
@@ -139,6 +142,18 @@ export default function PlacementProducers() {
           </SelectTrigger>
           <SelectContent className="bg-[#1e1e22] border-[#27272a]">
             {statuses.map(s => <SelectItem key={s} value={s} className="text-white capitalize">{s === 'all' ? 'All Statuses' : s}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        <Select value={priorityFilter} onValueChange={setPriorityFilter}>
+          <SelectTrigger className="w-[140px] bg-[#18181b] border-[#27272a] text-white text-sm rounded-lg">
+            <SelectValue placeholder="Priority" />
+          </SelectTrigger>
+          <SelectContent className="bg-[#1e1e22] border-[#27272a]">
+            {plPriorities.map(p => (
+              <SelectItem key={p} value={p} className="text-white">
+                {p === 'all' ? 'All Priorities' : `Priority ${p}`}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>
