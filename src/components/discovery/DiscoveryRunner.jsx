@@ -88,21 +88,19 @@ function normalizeFollowers(followers) {
   return 9;
 }
 
-function normalizeSubscribers(subs) {
-  if (!subs || subs < 100) return 0;
-  if (subs < 5000) return 2;
-  if (subs < 20000) return 4;
-  if (subs < 50000) return 6;
-  if (subs < 100000) return 8;
-  return 10;
+function ytSubscriberScore(subs) {
+  if (!subs || subs < 5000) return 1;   // low
+  if (subs < 50000) return 2;            // mid
+  return 3;                              // high
 }
 
 function calculatePriority(producer) {
   const ps = placementScore(producer.highlights_placements);
+  const gs = producer.genius_score ?? ps;  // use genius_score if set, else fall back to placement score
   const fs = normalizeFollowers(producer.followers_ig);
-  const ys = normalizeSubscribers(producer.youtube_subscribers);
-  // 60% placements, 20% IG followers, 20% YouTube subscribers
-  let base = ps * 0.6 + fs * 0.2 + ys * 0.2;
+  const ys = ytSubscriberScore(producer.youtube_subscribers);
+  // 60% genius/placement, 20% IG followers, 20% YouTube subscribers
+  let base = gs * 0.6 + fs * 0.2 + ys * 0.2;
   if (producer.instagram && producer.email) base += 0.8;
   else if (producer.instagram) base += 0.3;
   else base -= 0.5;
@@ -145,12 +143,14 @@ export default function DiscoveryRunner() {
         producers_found: 0, producers_added: 0, duplicates_skipped: 0, filtered_out: 0,
       });
 
-      // Load existing for dupe check
+      // Load existing for dupe check (both tables)
       const existing = await base44.entities.YouTubeProducer.list('-created_date', 500);
+      const existingPl = await base44.entities.PlacementProducer.list('-created_date', 500);
       const existingNames = new Set(existing.map(p => p.name?.toLowerCase()));
-      const existingIGs = new Set(
-        existing.map(p => p.instagram?.toLowerCase().replace('@', '')).filter(Boolean)
-      );
+      const existingIGs = new Set([
+        ...existing.map(p => p.instagram?.toLowerCase().replace('@', '')).filter(Boolean),
+        ...existingPl.map(p => p.instagram?.toLowerCase().replace('@', '')).filter(Boolean),
+      ]);
 
       let added = 0, dupes = 0, filtered = 0, totalFound = 0;
       const batchSize = 15;
@@ -179,7 +179,7 @@ export default function DiscoveryRunner() {
 
           const contacts = await extractContactsWithAI(producerName, p.channel_name, p.video_title, query);
 
-          const instagram = contacts?.instagram_handle?.replace(/^@/, '').trim() || '';
+          const instagram = (p.instagram || contacts?.instagram_handle || '').replace(/^@/, '').trim();
           const email = contacts?.email?.trim() || '';
           const followers = (contacts?.instagram_followers > 0) ? Math.round(contacts.instagram_followers) : p.estimated_ig_followers;
           const ytChannelUrl = p.channel_url || contacts?.youtube_channel_url || '';

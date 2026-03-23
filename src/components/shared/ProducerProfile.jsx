@@ -9,7 +9,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 // ─── Option stores ─────────────────────────────────────────────────────────────
 const optionStores = {
-  status: ['por contactar', 'contactado', 'follow up 1', 'follow up 2', 'follow up 3', 'follow up 4', 'follow up 5', 'archivado', 'eliminado'],
+  status: ['por contactar', 'contactado', 'follow up 1', 'follow up 2', 'follow up 3', 'follow up 4', 'follow up 5', 'connection', 'archivado', 'eliminado'],
   style: ['Juice WRLD', 'Polo G', 'Rod Wave', 'NBA YoungBoy', 'Melodic Trap', 'Emo Trap', 'Other'],
   que_enviar: ['loops', 'starters', 'beats', 'loops + starters', 'loops + beats', 'starters + beats', 'all'],
   donde_enviar: ['IG', 'email', 'telegram', 'iMessage', 'IG + email', 'multiple'],
@@ -284,6 +284,21 @@ export default function ProducerProfile({ producer, onClose, onSave, onDelete, t
                   />
                   <PriorityBar score={edited.priority || 0} max={type === 'youtube' ? 8 : 10} />
                 </div>
+              </div>
+              <div>
+                <label className="text-xs text-[#71717a] mb-1.5 block">
+                  Genius Score <span className="text-[#52525b]">(5–10)</span>
+                </label>
+                <Input
+                  type="number" min={5} max={10}
+                  value={edited.genius_score || ''}
+                  onChange={e => {
+                    const val = parseInt(e.target.value) || null;
+                    setEdited({ ...edited, genius_score: val });
+                  }}
+                  className="bg-[#0f0f10] border-[#27272a] text-white text-sm w-20"
+                  placeholder="5–10"
+                />
               </div>
             </div>
 

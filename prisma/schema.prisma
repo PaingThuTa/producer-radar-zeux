@@ -26,6 +26,7 @@ model YouTubeProducer {
   status                String?  @default("por contactar")
   priority              Int?     @default(5)
   priority_score        Int?
+  genius_score          Int?
   next_follow_up        String?
   last_action           String?
   que_enviar            String?
@@ -49,6 +50,7 @@ model PlacementProducer {
   status                String?  @default("por contactar")
   priority              Int?     @default(5)
   priority_score        Int?
+  genius_score          Int?
   next_follow_up        String?
   last_action           String?
   que_enviar            String?

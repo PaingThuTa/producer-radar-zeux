@@ -13,7 +13,7 @@ import BulkActionBar from '@/components/shared/BulkActionBar';
 import CsvImportExport from '@/components/shared/CsvImportExport';
 import { toast } from 'sonner';
 
-const statuses = ['all', 'por contactar', 'contactado', 'follow up 1', 'follow up 2', 'follow up 3', 'follow up 4', 'follow up 5', 'archivado', 'eliminado'];
+const statuses = ['all', 'por contactar', 'contactado', 'follow up 1', 'follow up 2', 'follow up 3', 'follow up 4', 'follow up 5', 'connection', 'archivado', 'eliminado'];
 
 export default function PlacementProducers() {
   const [search, setSearch] = useState('');
