@@ -1,37 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Sidebar from './Sidebar';
 import { cn } from '@/lib/utils';
 import { Menu } from 'lucide-react';
-import { toast } from 'sonner';
-
-const FOLLOW_UP_STATUSES = ['contactado', 'follow up 1', 'follow up 2', 'follow up 3', 'follow up 4', 'follow up 5'];
-
-async function fetchFollowUpCount() {
-  const todayStr = new Date().toISOString().split('T')[0];
-  const [yt, pl] = await Promise.all([
-    fetch('/api/youtube-producers?limit=500').then(r => r.json()),
-    fetch('/api/placement-producers?limit=500').then(r => r.json()),
-  ]);
-  return [...yt, ...pl].filter(p => {
-    if (!FOLLOW_UP_STATUSES.includes(p.status)) return false;
-    if (!p.next_follow_up) return true;
-    return p.next_follow_up <= todayStr;
-  }).length;
-}
 
 export default function AppLayout({ children }) {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-
-  useEffect(() => {
-    if (sessionStorage.getItem('followup-notified')) return;
-    fetchFollowUpCount().then(count => {
-      if (count > 0) {
-        toast.info(`You have ${count} follow up${count > 1 ? 's' : ''} due today`);
-      }
-      sessionStorage.setItem('followup-notified', '1');
-    }).catch(() => {});
-  }, []);
 
   return (
     <div className="min-h-screen bg-[#0f0f10]">

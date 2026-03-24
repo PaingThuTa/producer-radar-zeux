@@ -16,12 +16,12 @@ export default function Dashboard() {
 
   const { data: ytProducers = [] } = useQuery({
     queryKey: ['youtube-producers'],
-    queryFn: () => base44.entities.YouTubeProducer.list('-created_date', 100),
+    queryFn: () => base44.entities.YouTubeProducer.list('-priority', 500),
   });
 
   const { data: placementProducers = [] } = useQuery({
     queryKey: ['placement-producers'],
-    queryFn: () => base44.entities.PlacementProducer.list('-created_date', 100),
+    queryFn: () => base44.entities.PlacementProducer.list('-priority', 500),
   });
 
   const { data: logs = [] } = useQuery({
@@ -33,13 +33,16 @@ export default function Dashboard() {
   const todayProducers = ytProducers.filter(p => p.created_date?.startsWith(today));
   const highPriority = [...ytProducers, ...placementProducers].filter(p => (p.priority || 0) >= 7);
   const contacted = [...ytProducers, ...placementProducers].filter(p => p.status === 'contactado');
-  const todayDate = new Date(); todayDate.setHours(0, 0, 0, 0);
-  const followUps = [...ytProducers, ...placementProducers].filter(p => {
-    if (!p.status?.startsWith('follow up')) return false;
+
+  const isFollowUpDue = (p) => {
+    if (!p.status?.startsWith('follow up') && p.status !== 'contactado') return false;
     if (!p.next_follow_up) return true;
-    const d = new Date(p.next_follow_up); d.setHours(0, 0, 0, 0);
-    return d <= todayDate;
-  });
+    return p.next_follow_up <= today;
+  };
+
+  const followUps = [...ytProducers, ...placementProducers].filter(isFollowUpDue);
+  const overdueCount = followUps.filter(p => p.next_follow_up && p.next_follow_up < today).length;
+  const todayCount = followUps.filter(p => p.next_follow_up === today).length;
 
   // Daily DMs: not yet contacted
   const dailyDMs = [...ytProducers, ...placementProducers]
@@ -47,9 +50,9 @@ export default function Dashboard() {
     .sort((a, b) => (b.priority || 0) - (a.priority || 0))
     .slice(0, 8);
 
-  // Daily Follow Ups: next_follow_up = today
+  // Daily Follow Ups: overdue + today
   const dailyFollowUps = [...ytProducers, ...placementProducers]
-    .filter(p => p.next_follow_up === today && p.status?.startsWith('follow up'))
+    .filter(isFollowUpDue)
     .sort((a, b) => (b.priority || 0) - (a.priority || 0));
 
   useAutoAdvanceStatus(ytProducers, placementProducers, () => {
@@ -68,6 +71,39 @@ export default function Dashboard() {
         <h1 className="text-2xl font-bold text-white">Dashboard</h1>
         <p className="text-[#71717a] text-sm mt-1">Overview of your producer discovery network</p>
       </div>
+
+      {/* Follow-up banner */}
+      {followUps.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.35, ease: 'easeOut' }}
+          className="flex items-center justify-between px-5 py-4 bg-amber-500/5 border border-amber-500/20 border-l-4 border-l-amber-500 rounded-xl"
+        >
+          <div className="flex items-center gap-4">
+            <div className="w-10 h-10 rounded-lg bg-amber-500/10 flex items-center justify-center flex-shrink-0">
+              <RefreshCw className="w-5 h-5 text-amber-400" />
+            </div>
+            <div>
+              <p className="text-white font-semibold">
+                You have{' '}
+                <span className="text-amber-400 text-lg font-bold">{followUps.length}</span>
+                {' '}follow up{followUps.length > 1 ? 's' : ''} due
+              </p>
+              {(overdueCount > 0 || todayCount > 0) && (
+                <p className="text-xs text-[#71717a] mt-0.5">
+                  {overdueCount > 0 && `${overdueCount} overdue`}
+                  {overdueCount > 0 && todayCount > 0 && ' · '}
+                  {todayCount > 0 && `${todayCount} today`}
+                </p>
+              )}
+            </div>
+          </div>
+          <Link href="/DailyContacts" className="flex items-center gap-1.5 text-sm text-amber-400 hover:text-amber-300 font-medium transition-colors whitespace-nowrap">
+            Go to Daily Outreach <ArrowRight className="w-4 h-4" />
+          </Link>
+        </motion.div>
+      )}
 
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
