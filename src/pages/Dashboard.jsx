@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { api as base44 } from '@/lib/api-client';
+import { api } from '@/lib/api-client';
 import { Radar, UserCheck, Clock, TrendingUp, ArrowRight, MessageCircle, RefreshCw, Instagram, Pencil } from 'lucide-react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
@@ -16,17 +16,17 @@ export default function Dashboard() {
 
   const { data: ytProducers = [] } = useQuery({
     queryKey: ['youtube-producers'],
-    queryFn: () => base44.entities.YouTubeProducer.list('-priority', 500),
+    queryFn: () => api.entities.YouTubeProducer.list('-priority', 500),
   });
 
   const { data: placementProducers = [] } = useQuery({
     queryKey: ['placement-producers'],
-    queryFn: () => base44.entities.PlacementProducer.list('-priority', 500),
+    queryFn: () => api.entities.PlacementProducer.list('-priority', 500),
   });
 
   const { data: logs = [] } = useQuery({
     queryKey: ['discovery-logs'],
-    queryFn: () => base44.entities.DiscoveryLog.list('-created_date', 10),
+    queryFn: () => api.entities.DiscoveryLog.list('-created_date', 10),
   });
 
   const today = new Date().toISOString().split('T')[0];

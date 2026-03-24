@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { api as base44 } from '@/lib/api-client';
+import { api } from '@/lib/api-client';
 import { X, Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,9 +15,9 @@ export default function AddProducerDialog({ type, onClose, onAdded }) {
     if (!data.name) { toast.error('Name is required'); return; }
     setSaving(true);
     if (type === 'youtube') {
-      await base44.entities.YouTubeProducer.create({ ...data, source: 'Manual', status: 'por contactar' });
+      await api.entities.YouTubeProducer.create({ ...data, source: 'Manual', status: 'por contactar' });
     } else {
-      await base44.entities.PlacementProducer.create({ ...data, source: 'Manual', status: 'por contactar' });
+      await api.entities.PlacementProducer.create({ ...data, source: 'Manual', status: 'por contactar' });
     }
     toast.success('Producer added');
     onAdded();

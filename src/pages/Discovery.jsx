@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { api as base44 } from '@/lib/api-client';
+import { api } from '@/lib/api-client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Radar, Play, Loader2, Youtube, Music2, Trash2 } from 'lucide-react';
@@ -25,13 +25,13 @@ export default function Discovery() {
 
   const { data: logs = [] } = useQuery({
     queryKey: ['discovery-logs'],
-    queryFn: () => base44.entities.DiscoveryLog.list('-created_date', 50),
+    queryFn: () => api.entities.DiscoveryLog.list('-created_date', 50),
   });
 
   const handleClearLogs = async () => {
     if (!window.confirm('Delete all discovery logs?')) return;
     setClearingLogs(true);
-    await Promise.all(logs.map(l => base44.entities.DiscoveryLog.delete(l.id)));
+    await Promise.all(logs.map(l => api.entities.DiscoveryLog.delete(l.id)));
     queryClient.invalidateQueries({ queryKey: ['discovery-logs'] });
     setClearingLogs(false);
     toast.success('Logs cleared');

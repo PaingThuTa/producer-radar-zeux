@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { api as base44 } from '@/lib/api-client';
+import { api } from '@/lib/api-client';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
@@ -41,11 +41,11 @@ export default function YouTubeProducers() {
 
   const { data: producers = [], isLoading } = useQuery({
     queryKey: ['youtube-producers'],
-    queryFn: () => base44.entities.YouTubeProducer.list('-created_date', 5000),
+    queryFn: () => api.entities.YouTubeProducer.list('-created_date', 5000),
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.YouTubeProducer.update(id, data),
+    mutationFn: ({ id, data }) => api.entities.YouTubeProducer.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['youtube-producers'] });
       setSelected(null);
@@ -54,7 +54,7 @@ export default function YouTubeProducers() {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id) => base44.entities.YouTubeProducer.delete(id),
+    mutationFn: (id) => api.entities.YouTubeProducer.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['youtube-producers'] });
       setSelected(null);
@@ -112,14 +112,14 @@ export default function YouTubeProducers() {
   };
 
   const handleBulkUpdate = async (data) => {
-    await batchOp(selectedIds, id => base44.entities.YouTubeProducer.update(id, data));
+    await batchOp(selectedIds, id => api.entities.YouTubeProducer.update(id, data));
     queryClient.invalidateQueries({ queryKey: ['youtube-producers'] });
     toast.success(`Updated ${selectedIds.size} producers`);
     setSelectedIds(new Set());
   };
 
   const handleBulkDelete = async () => {
-    await batchOp(selectedIds, id => base44.entities.YouTubeProducer.delete(id));
+    await batchOp(selectedIds, id => api.entities.YouTubeProducer.delete(id));
     queryClient.invalidateQueries({ queryKey: ['youtube-producers'] });
     toast.success(`Deleted ${selectedIds.size} producers`);
     setSelectedIds(new Set());
@@ -139,7 +139,7 @@ export default function YouTubeProducers() {
         <div className="flex items-center gap-2">
           <CsvImportExport
             producers={producers}
-            entity={base44.entities.YouTubeProducer}
+            entity={api.entities.YouTubeProducer}
             type="youtube"
             onImportComplete={() => queryClient.invalidateQueries({ queryKey: ['youtube-producers'] })}
           />

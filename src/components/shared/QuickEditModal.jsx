@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { api as base44 } from '@/lib/api-client';
+import { api } from '@/lib/api-client';
 import { X, Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
@@ -36,8 +36,8 @@ export default function QuickEditModal({ producer, producerType, onClose, onSave
   const handleSave = async () => {
     setSaving(true);
     const entity = producerType === 'yt'
-      ? base44.entities.YouTubeProducer
-      : base44.entities.PlacementProducer;
+      ? api.entities.YouTubeProducer
+      : api.entities.PlacementProducer;
     await entity.update(producer.id, form);
     toast.success('Productor actualizado');
     setSaving(false);

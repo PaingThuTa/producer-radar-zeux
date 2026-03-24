@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { api as base44 } from '@/lib/api-client';
+import { api } from '@/lib/api-client';
 import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -106,14 +106,14 @@ export default function DiscoveryRunner() {
 
     let log;
     try {
-      log = await base44.entities.DiscoveryLog.create({
+      log = await api.entities.DiscoveryLog.create({
         query, source: 'YouTube', status: 'running',
         producers_found: 0, producers_added: 0, duplicates_skipped: 0, filtered_out: 0,
       });
 
       // Load existing for dupe check (both tables)
-      const existing = await base44.entities.YouTubeProducer.list('-created_date', 500);
-      const existingPl = await base44.entities.PlacementProducer.list('-created_date', 500);
+      const existing = await api.entities.YouTubeProducer.list('-created_date', 500);
+      const existingPl = await api.entities.PlacementProducer.list('-created_date', 500);
       const existingNames = new Set(existing.map(p => p.name?.toLowerCase()));
       const existingIGs = new Set([
         ...existing.map(p => p.instagram?.toLowerCase().replace('@', '')).filter(Boolean),
@@ -182,7 +182,7 @@ export default function DiscoveryRunner() {
           producerData.priority_score = score;
           producerData.priority = score;
 
-          await base44.entities.YouTubeProducer.create(producerData);
+          await api.entities.YouTubeProducer.create(producerData);
           existingNames.add(producerName.toLowerCase());
           if (instagram) existingIGs.add(instagram.toLowerCase());
           added++;
@@ -191,7 +191,7 @@ export default function DiscoveryRunner() {
         if (!currentPageToken) break;
       }
 
-      await base44.entities.DiscoveryLog.update(log.id, {
+      await api.entities.DiscoveryLog.update(log.id, {
         status: 'completed',
         producers_found: totalFound,
         producers_added: added,
@@ -205,7 +205,7 @@ export default function DiscoveryRunner() {
     } catch (err) {
       toast.error(err.message || 'Discovery failed');
       if (log?.id) {
-        await base44.entities.DiscoveryLog.update(log.id, { status: 'error' }).catch(() => {});
+        await api.entities.DiscoveryLog.update(log.id, { status: 'error' }).catch(() => {});
       }
       queryClient.invalidateQueries({ queryKey: ['discovery-logs'] });
     } finally {

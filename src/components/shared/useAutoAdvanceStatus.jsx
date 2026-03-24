@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { api as base44 } from '@/lib/api-client';
+import { api } from '@/lib/api-client';
 
 function addDays(n) {
   const d = new Date();
@@ -36,7 +36,7 @@ export function useAutoAdvanceStatus(ytProducers = [], plProducers = [], onAdvan
 
     // Producers at follow up 5 with re_dms='yes' and last_action 60+ days ago → reset
     const shouldReset = (p) => {
-      if (p.status !== 'follow up 5' || p.re_dms !== 'yes') return false;
+      if (p.status !== 'archivado' || p.re_dms !== 'yes') return false;
       if (!p.last_action) return false;
       const last = new Date(p.last_action);
       last.setHours(0, 0, 0, 0);
@@ -68,14 +68,14 @@ export function useAutoAdvanceStatus(ytProducers = [], plProducers = [], onAdvan
 
     Promise.all([
       ...ytToReset.map(p =>
-        base44.entities.YouTubeProducer.update(p.id, {
+        api.entities.YouTubeProducer.update(p.id, {
           status: 'por contactar',
           last_action: today_str,
           next_follow_up: null,
         })
       ),
       ...plToReset.map(p =>
-        base44.entities.PlacementProducer.update(p.id, {
+        api.entities.PlacementProducer.update(p.id, {
           status: 'por contactar',
           last_action: today_str,
           next_follow_up: null,
@@ -84,7 +84,7 @@ export function useAutoAdvanceStatus(ytProducers = [], plProducers = [], onAdvan
       ...ytToAdvance.map(p => {
         const nextStatus = getNext(p.status);
         const delay = getFollowUpDelay(nextStatus);
-        return base44.entities.YouTubeProducer.update(p.id, {
+        return api.entities.YouTubeProducer.update(p.id, {
           status: nextStatus,
           last_action: today_str,
           next_follow_up: delay != null ? addDays(delay) : null,
@@ -93,7 +93,7 @@ export function useAutoAdvanceStatus(ytProducers = [], plProducers = [], onAdvan
       ...plToAdvance.map(p => {
         const nextStatus = getNext(p.status);
         const delay = getFollowUpDelay(nextStatus);
-        return base44.entities.PlacementProducer.update(p.id, {
+        return api.entities.PlacementProducer.update(p.id, {
           status: nextStatus,
           last_action: today_str,
           next_follow_up: delay != null ? addDays(delay) : null,

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { api as base44 } from '@/lib/api-client';
+import { api } from '@/lib/api-client';
 import { Star, Instagram, Youtube, Clock, Users, Zap, Heart, Send, LayoutGrid, Youtube as YTIcon } from 'lucide-react';
 import StatusBadge from '@/components/shared/StatusBadge';
 import PriorityBar from '@/components/shared/PriorityBar';
@@ -188,27 +188,27 @@ export default function Contacts() {
 
   const { data: ytProducers = [] } = useQuery({
     queryKey: ['youtube-producers'],
-    queryFn: () => base44.entities.YouTubeProducer.list('-priority', 500),
+    queryFn: () => api.entities.YouTubeProducer.list('-priority', 500),
   });
   const { data: plProducers = [] } = useQuery({
     queryKey: ['placement-producers'],
-    queryFn: () => base44.entities.PlacementProducer.list('-priority', 500),
+    queryFn: () => api.entities.PlacementProducer.list('-priority', 500),
   });
 
   const updateYT = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.YouTubeProducer.update(id, data),
+    mutationFn: ({ id, data }) => api.entities.YouTubeProducer.update(id, data),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['youtube-producers'] }),
   });
   const updatePL = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.PlacementProducer.update(id, data),
+    mutationFn: ({ id, data }) => api.entities.PlacementProducer.update(id, data),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['placement-producers'] }),
   });
   const deleteYT = useMutation({
-    mutationFn: (id) => base44.entities.YouTubeProducer.delete(id),
+    mutationFn: (id) => api.entities.YouTubeProducer.delete(id),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['youtube-producers'] }); setSelected(null); },
   });
   const deletePL = useMutation({
-    mutationFn: (id) => base44.entities.PlacementProducer.delete(id),
+    mutationFn: (id) => api.entities.PlacementProducer.delete(id),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['placement-producers'] }); setSelected(null); },
   });
 

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { api as base44 } from '@/lib/api-client';
+import { api } from '@/lib/api-client';
 import { MessageCircle, RefreshCw, Check, Instagram, Mail, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
@@ -43,12 +43,6 @@ function formatFollowUpDate(dateStr) {
   return { label: `in ${diff}d`, color: 'text-[#71717a]' };
 }
 
-const FILTER_OPTS = [
-  { id: 'today', label: 'Today' },
-  { id: 'overdue', label: 'Overdue' },
-  { id: 'upcoming', label: 'Upcoming' },
-  { id: 'all', label: 'All' },
-];
 
 function DateChip({ dateStr }) {
   if (!dateStr) return (
@@ -90,15 +84,15 @@ function GroupHeader({ label, color, count, textColor, badgeClass }) {
 export default function DailyContacts() {
   const queryClient = useQueryClient();
   const [editProducer, setEditProducer] = useState(null);
-  const [filter, setFilter] = useState('due');
+  const [filter, setFilter] = useState('all');
 
   const { data: ytProducers = [] } = useQuery({
     queryKey: ['youtube-producers'],
-    queryFn: () => base44.entities.YouTubeProducer.list('-priority', 200),
+    queryFn: () => api.entities.YouTubeProducer.list('-priority', 5000),
   });
   const { data: plProducers = [] } = useQuery({
     queryKey: ['placement-producers'],
-    queryFn: () => base44.entities.PlacementProducer.list('-priority', 200),
+    queryFn: () => api.entities.PlacementProducer.list('-priority', 5000),
   });
 
   // Mark as contacted:
@@ -108,14 +102,14 @@ export default function DailyContacts() {
     mutationFn: ({ id, re_dms }) => {
       const today = new Date().toISOString().split('T')[0];
       if (re_dms === 'no') {
-        return base44.entities.YouTubeProducer.update(id, {
+        return api.entities.YouTubeProducer.update(id, {
           status: 'follow up 4',
           date_contacted: today,
           last_action: today,
           next_follow_up: addDays(randomDays(5, 10)),
         });
       }
-      return base44.entities.YouTubeProducer.update(id, {
+      return api.entities.YouTubeProducer.update(id, {
         status: 'contactado',
         date_contacted: today,
         last_action: today,
@@ -132,13 +126,13 @@ export default function DailyContacts() {
     mutationFn: ({ id, re_dms }) => {
       const today = new Date().toISOString().split('T')[0];
       if (re_dms === 'no') {
-        return base44.entities.PlacementProducer.update(id, {
+        return api.entities.PlacementProducer.update(id, {
           status: 'follow up 4',
           last_action: today,
           next_follow_up: addDays(randomDays(5, 10)),
         });
       }
-      return base44.entities.PlacementProducer.update(id, {
+      return api.entities.PlacementProducer.update(id, {
         status: 'contactado',
         last_action: today,
         next_follow_up: addDays(1),
@@ -163,7 +157,7 @@ export default function DailyContacts() {
     mutationFn: ({ id, currentStatus, re_dms }) => {
       const finalStatus = getNextFollowUpStatus(currentStatus, re_dms);
       const delay = getFollowUpDelay(finalStatus);
-      return base44.entities.YouTubeProducer.update(id, {
+      return api.entities.YouTubeProducer.update(id, {
         status: finalStatus,
         last_action: new Date().toISOString().split('T')[0],
         next_follow_up: delay != null ? addDays(delay) : null,
@@ -176,7 +170,7 @@ export default function DailyContacts() {
     mutationFn: ({ id, currentStatus, re_dms }) => {
       const finalStatus = getNextFollowUpStatus(currentStatus, re_dms);
       const delay = getFollowUpDelay(finalStatus);
-      return base44.entities.PlacementProducer.update(id, {
+      return api.entities.PlacementProducer.update(id, {
         status: finalStatus,
         last_action: new Date().toISOString().split('T')[0],
         next_follow_up: delay != null ? addDays(delay) : null,
@@ -210,14 +204,10 @@ export default function DailyContacts() {
     return da - db;
   });
 
-  const filteredFollowUps = followUps.filter(p => {
-    const d = p.next_follow_up;
-    if (filter === 'due') return !d || d <= todayStr;
-    if (filter === 'today') return d === todayStr;
-    if (filter === 'overdue') return !d || d < todayStr;
-    if (filter === 'upcoming') return d && d > todayStr;
-    return true; // 'all'
-  });
+  const overdueItems = followUps.filter(p => p.next_follow_up && p.next_follow_up < todayStr);
+  const todayItems = followUps.filter(p => p.next_follow_up === todayStr);
+  const upcomingItems = followUps.filter(p => p.next_follow_up && p.next_follow_up > todayStr);
+  const dueCount = overdueItems.length + todayItems.length;
 
   return (
     <div className="space-y-10">
@@ -231,41 +221,50 @@ export default function DailyContacts() {
         <div className="flex items-center gap-2 mb-3">
           <RefreshCw className="w-5 h-5 text-amber-400" />
           <h2 className="text-lg font-semibold text-white">Follow Ups Pendientes</h2>
-          <span className="text-xs bg-amber-400/10 text-amber-400 border border-amber-400/20 px-2 py-0.5 rounded-full">
-            {filteredFollowUps.length}
-          </span>
+          {dueCount > 0 && (
+            <span className="text-xs bg-red-500/10 text-red-400 border border-red-500/20 px-2 py-0.5 rounded-full">
+              {dueCount} due
+            </span>
+          )}
+          {upcomingItems.length > 0 && (
+            <span className="text-xs bg-zinc-700/50 text-zinc-400 border border-zinc-700 px-2 py-0.5 rounded-full">
+              {upcomingItems.length} upcoming
+            </span>
+          )}
         </div>
 
-        {/* Filter bar */}
+        {/* Filter tabs */}
         <div className="flex items-center gap-1.5 mb-4">
-          {FILTER_OPTS.map(opt => {
-            const isActive = filter === opt.id || (filter === 'due' && (opt.id === 'today' || opt.id === 'overdue'));
-            return (
-              <button
-                key={opt.id}
-                onClick={() => setFilter(opt.id)}
-                className={`text-xs px-3 py-1 rounded-full border transition-colors ${
-                  isActive
-                    ? 'bg-amber-500/15 text-amber-400 border-amber-500/30'
-                    : 'bg-transparent text-[#71717a] border-[#27272a] hover:text-white hover:border-[#3f3f46]'
-                }`}
-              >
-                {opt.label}
-              </button>
-            );
-          })}
+          {[
+            { id: 'all', label: 'All', count: overdueItems.length + todayItems.length + upcomingItems.length },
+            { id: 'overdue', label: 'Overdue', count: overdueItems.length },
+            { id: 'today', label: 'Today', count: todayItems.length },
+            { id: 'upcoming', label: 'Upcoming', count: upcomingItems.length },
+          ].map(opt => (
+            <button
+              key={opt.id}
+              onClick={() => setFilter(opt.id)}
+              className={`text-xs px-3 py-1 rounded-full border transition-colors flex items-center gap-1.5 ${
+                filter === opt.id
+                  ? 'bg-amber-500/15 text-amber-400 border-amber-500/30'
+                  : 'bg-transparent text-[#71717a] border-[#27272a] hover:text-white hover:border-[#3f3f46]'
+              }`}
+            >
+              {opt.label}
+              {opt.count > 0 && (
+                <span className={`text-[10px] px-1 rounded ${filter === opt.id ? 'bg-amber-500/20' : 'bg-[#27272a]'}`}>
+                  {opt.count}
+                </span>
+              )}
+            </button>
+          ))}
         </div>
 
-        {filteredFollowUps.length === 0 ? (
+        {(overdueItems.length === 0 && todayItems.length === 0 && upcomingItems.length === 0) ? (
           <div className="bg-[#18181b] border border-[#27272a] rounded-xl p-8 text-center text-[#3f3f46]">
-            No hay follow ups para este filtro
+            No follow ups pendientes
           </div>
         ) : (() => {
-          const showGroups = filter === 'due' || filter === 'all';
-          const overdueItems = showGroups ? filteredFollowUps.filter(p => !p.next_follow_up || p.next_follow_up < todayStr) : [];
-          const todayItems = showGroups ? filteredFollowUps.filter(p => p.next_follow_up === todayStr) : [];
-          const upcomingItems = showGroups && filter === 'all' ? filteredFollowUps.filter(p => p.next_follow_up && p.next_follow_up > todayStr) : [];
-
           const renderRow = (p) => (
             <div key={p.id} className="flex items-center gap-4 px-5 py-3 hover:bg-white/[0.02]">
               {/* Left: name + instagram + badges */}
@@ -313,31 +312,32 @@ export default function DailyContacts() {
             </div>
           );
 
+          const showOverdue = filter === 'all' || filter === 'overdue';
+          const showToday = filter === 'all' || filter === 'today';
+          const showUpcoming = filter === 'all' || filter === 'upcoming';
+
           return (
             <div className="bg-[#18181b] border border-[#27272a] rounded-xl divide-y divide-[#27272a]">
-              {showGroups ? (
+              {showOverdue && overdueItems.length > 0 && (
                 <>
-                  {overdueItems.length > 0 && (
-                    <>
-                      <GroupHeader label="Overdue" color="border-red-500" textColor="text-red-400" badgeClass="bg-red-500/10 text-red-400 border-red-500/20" count={overdueItems.length} />
-                      {overdueItems.map(renderRow)}
-                    </>
-                  )}
-                  {todayItems.length > 0 && (
-                    <>
-                      <GroupHeader label="Today" color="border-amber-500" textColor="text-amber-400" badgeClass="bg-amber-500/10 text-amber-400 border-amber-500/20" count={todayItems.length} />
-                      {todayItems.map(renderRow)}
-                    </>
-                  )}
-                  {upcomingItems.length > 0 && (
-                    <>
-                      <GroupHeader label="Upcoming" color="border-zinc-500" textColor="text-zinc-400" badgeClass="bg-zinc-700/50 text-zinc-400 border-zinc-700" count={upcomingItems.length} />
-                      {upcomingItems.map(renderRow)}
-                    </>
-                  )}
+                  <GroupHeader label="Overdue" color="border-red-500" textColor="text-red-400" badgeClass="bg-red-500/10 text-red-400 border-red-500/20" count={overdueItems.length} />
+                  {overdueItems.map(renderRow)}
                 </>
-              ) : (
-                filteredFollowUps.map(renderRow)
+              )}
+              {showToday && todayItems.length > 0 && (
+                <>
+                  <GroupHeader label="Today" color="border-amber-500" textColor="text-amber-400" badgeClass="bg-amber-500/10 text-amber-400 border-amber-500/20" count={todayItems.length} />
+                  {todayItems.map(renderRow)}
+                </>
+              )}
+              {showUpcoming && upcomingItems.length > 0 && (
+                <>
+                  <GroupHeader label="Upcoming" color="border-zinc-500" textColor="text-zinc-400" badgeClass="bg-zinc-700/50 text-zinc-400 border-zinc-700" count={upcomingItems.length} />
+                  {upcomingItems.map(renderRow)}
+                </>
+              )}
+              {!showOverdue && !showToday && !showUpcoming && (
+                <div className="p-8 text-center text-[#3f3f46]">No hay follow ups para este filtro</div>
               )}
             </div>
           );

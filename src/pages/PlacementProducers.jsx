@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { api as base44 } from '@/lib/api-client';
+import { api } from '@/lib/api-client';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
@@ -30,11 +30,11 @@ export default function PlacementProducers() {
 
   const { data: producers = [] } = useQuery({
     queryKey: ['placement-producers'],
-    queryFn: () => base44.entities.PlacementProducer.list('-created_date', 5000),
+    queryFn: () => api.entities.PlacementProducer.list('-created_date', 5000),
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.PlacementProducer.update(id, data),
+    mutationFn: ({ id, data }) => api.entities.PlacementProducer.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['placement-producers'] });
       setSelected(null);
@@ -43,7 +43,7 @@ export default function PlacementProducers() {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id) => base44.entities.PlacementProducer.delete(id),
+    mutationFn: (id) => api.entities.PlacementProducer.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['placement-producers'] });
       setSelected(null);
@@ -92,14 +92,14 @@ export default function PlacementProducers() {
   };
 
   const handleBulkUpdate = async (data) => {
-    await batchOp(selectedIds, id => base44.entities.PlacementProducer.update(id, data));
+    await batchOp(selectedIds, id => api.entities.PlacementProducer.update(id, data));
     queryClient.invalidateQueries({ queryKey: ['placement-producers'] });
     toast.success(`Updated ${selectedIds.size} producers`);
     setSelectedIds(new Set());
   };
 
   const handleBulkDelete = async () => {
-    await batchOp(selectedIds, id => base44.entities.PlacementProducer.delete(id));
+    await batchOp(selectedIds, id => api.entities.PlacementProducer.delete(id));
     queryClient.invalidateQueries({ queryKey: ['placement-producers'] });
     toast.success(`Deleted ${selectedIds.size} producers`);
     setSelectedIds(new Set());
@@ -119,7 +119,7 @@ export default function PlacementProducers() {
         <div className="flex items-center gap-2">
           <CsvImportExport
             producers={producers}
-            entity={base44.entities.PlacementProducer}
+            entity={api.entities.PlacementProducer}
             type="placement"
             onImportComplete={() => queryClient.invalidateQueries({ queryKey: ['placement-producers'] })}
           />

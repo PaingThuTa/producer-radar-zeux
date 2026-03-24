@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { api as base44 } from '@/lib/api-client';
+import { api } from '@/lib/api-client';
 import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -131,7 +131,7 @@ export default function PlacementDiscovery() {
     for (const producer of producers) {
       if (!selectedNames.has(producer.name)) continue;
       try {
-        await base44.entities.PlacementProducer.create({
+        await api.entities.PlacementProducer.create({
           name: producer.name,
           instagram: producer.instagram || undefined,
           song: producer.song || undefined,
