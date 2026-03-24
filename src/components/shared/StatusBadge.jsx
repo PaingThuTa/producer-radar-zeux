@@ -17,7 +17,7 @@ const statusColors = {
   'failed': 'bg-red-500/10 text-red-400 border-red-500/20',
 };
 
-export default function StatusBadge({ status }) {
+export default function StatusBadge({ status, count }) {
   const colors = statusColors[status] || 'bg-zinc-500/10 text-zinc-400 border-zinc-500/20';
   return (
     <span className={cn(
@@ -25,6 +25,9 @@ export default function StatusBadge({ status }) {
       colors
     )}>
       {status}
+      {count !== undefined && (
+        <span className="ml-1.5 opacity-75">{count}</span>
+      )}
     </span>
   );
 }

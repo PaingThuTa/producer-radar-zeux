@@ -177,10 +177,7 @@ export default function PlacementProducers() {
           {statuses
             .filter(s => s !== 'all' && statusCounts[s])
             .map(s => (
-              <div key={s} className="flex items-center gap-1.5">
-                <StatusBadge status={s} />
-                <span className="text-xs text-[#71717a]">{statusCounts[s]}</span>
-              </div>
+              <StatusBadge key={s} status={s} count={statusCounts[s]} />
             ))
           }
         </div>
