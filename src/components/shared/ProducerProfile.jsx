@@ -16,20 +16,26 @@ const optionStores = {
   re_dms: ['yes', 'no', 'unknown'],
 };
 
+function randomDays(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function getFollowUpDelay(toStatus) {
+  if (toStatus === 'contactado') return 1;
+  if (toStatus === 'follow up 1') return 1;
+  if (toStatus === 'follow up 2') return randomDays(2, 4);
+  if (toStatus === 'follow up 3') return randomDays(5, 10);
+  if (toStatus === 'follow up 4') return randomDays(5, 10);
+  if (toStatus === 'follow up 5') return randomDays(5, 10);
+  return null;
+}
+
 // Auto-set follow-up dates based on status transition
 function computeFollowUpDate(newStatus, prevStatus) {
-  const today = new Date();
-  const isFirstContact = newStatus === 'contactado' && (!prevStatus || prevStatus === 'por contactar');
-  const isFollowUp = newStatus?.startsWith('follow up');
-  if (isFirstContact) {
-    const d = new Date(today); d.setDate(d.getDate() + 1);
-    return d.toISOString().split('T')[0];
-  }
-  if (isFollowUp) {
-    const d = new Date(today); d.setDate(d.getDate() + 7);
-    return d.toISOString().split('T')[0];
-  }
-  return null;
+  const delay = getFollowUpDelay(newStatus);
+  if (delay == null) return null;
+  const d = new Date(); d.setDate(d.getDate() + delay);
+  return d.toISOString().split('T')[0];
 }
 
 // ─── DynamicSelect ─────────────────────────────────────────────────────────────

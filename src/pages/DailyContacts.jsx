@@ -19,6 +19,19 @@ function addDays(n) {
   const d = new Date(); d.setDate(d.getDate() + n); return d.toISOString().split('T')[0];
 }
 
+function randomDays(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function getFollowUpDelay(toStatus) {
+  if (toStatus === 'follow up 1') return 1;
+  if (toStatus === 'follow up 2') return randomDays(2, 4);
+  if (toStatus === 'follow up 3') return randomDays(5, 10);
+  if (toStatus === 'follow up 4') return randomDays(5, 10);
+  if (toStatus === 'follow up 5') return randomDays(5, 10);
+  return null;
+}
+
 function formatFollowUpDate(dateStr) {
   if (!dateStr) return null;
   const today = new Date(); today.setHours(0,0,0,0);
@@ -54,7 +67,7 @@ export default function DailyContacts() {
           status: 'follow up 4',
           date_contacted: today,
           last_action: today,
-          next_follow_up: addDays(7),
+          next_follow_up: addDays(randomDays(5, 10)),
         });
       }
       return base44.entities.YouTubeProducer.update(id, {
@@ -77,7 +90,7 @@ export default function DailyContacts() {
         return base44.entities.PlacementProducer.update(id, {
           status: 'follow up 4',
           last_action: today,
-          next_follow_up: addDays(7),
+          next_follow_up: addDays(randomDays(5, 10)),
         });
       }
       return base44.entities.PlacementProducer.update(id, {
@@ -104,10 +117,11 @@ export default function DailyContacts() {
   const advanceFollowUpYT = useMutation({
     mutationFn: ({ id, currentStatus, re_dms }) => {
       const finalStatus = getNextFollowUpStatus(currentStatus, re_dms);
+      const delay = getFollowUpDelay(finalStatus);
       return base44.entities.YouTubeProducer.update(id, {
         status: finalStatus,
         last_action: new Date().toISOString().split('T')[0],
-        next_follow_up: finalStatus === 'archivado' ? null : addDays(7),
+        next_follow_up: delay != null ? addDays(delay) : null,
       });
     },
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['youtube-producers'] }); toast.success('Follow up avanzado'); },
@@ -116,10 +130,11 @@ export default function DailyContacts() {
   const advanceFollowUpPL = useMutation({
     mutationFn: ({ id, currentStatus, re_dms }) => {
       const finalStatus = getNextFollowUpStatus(currentStatus, re_dms);
+      const delay = getFollowUpDelay(finalStatus);
       return base44.entities.PlacementProducer.update(id, {
         status: finalStatus,
         last_action: new Date().toISOString().split('T')[0],
-        next_follow_up: finalStatus === 'archivado' ? null : addDays(7),
+        next_follow_up: delay != null ? addDays(delay) : null,
       });
     },
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['placement-producers'] }); toast.success('Follow up avanzado'); },
