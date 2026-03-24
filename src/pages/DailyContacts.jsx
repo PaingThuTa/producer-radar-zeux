@@ -204,7 +204,7 @@ export default function DailyContacts() {
     return da - db;
   });
 
-  const overdueItems = followUps.filter(p => p.next_follow_up && p.next_follow_up < todayStr);
+  const overdueItems = followUps.filter(p => !p.next_follow_up || p.next_follow_up < todayStr);
   const todayItems = followUps.filter(p => p.next_follow_up === todayStr);
   const upcomingItems = followUps.filter(p => p.next_follow_up && p.next_follow_up > todayStr);
   const dueCount = overdueItems.length + todayItems.length;

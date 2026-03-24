@@ -113,6 +113,34 @@ export default function Dashboard() {
         <StatCard title="Follow Ups" value={followUps.length} icon={Clock} accentColor="#f59e0b" />
       </div>
 
+      {/* Network Overview */}
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.05 }}
+        className="bg-[#18181b] border border-[#27272a] rounded-xl p-5"
+      >
+        <h2 className="text-sm font-semibold text-white mb-4">Network Overview</h2>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
+          <div>
+            <p className="text-2xl font-bold text-white">{ytProducers.length}</p>
+            <p className="text-xs text-[#71717a] mt-0.5">YouTube Producers</p>
+          </div>
+          <div>
+            <p className="text-2xl font-bold text-white">{placementProducers.length}</p>
+            <p className="text-xs text-[#71717a] mt-0.5">Placement Producers</p>
+          </div>
+          <div>
+            <p className="text-2xl font-bold text-white">{[...ytProducers, ...placementProducers].filter(p => p.email).length}</p>
+            <p className="text-xs text-[#71717a] mt-0.5">Emails Found</p>
+          </div>
+          <div>
+            <p className="text-2xl font-bold text-white">{logs.length}</p>
+            <p className="text-xs text-[#71717a] mt-0.5">Discovery Runs</p>
+          </div>
+        </div>
+      </motion.div>
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Top Priority Producers */}
         <motion.div
@@ -274,33 +302,6 @@ export default function Dashboard() {
         </motion.div>
       </div>
 
-      {/* Total Stats */}
-      <motion.div
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
-        className="bg-[#18181b] border border-[#27272a] rounded-xl p-5"
-      >
-        <h2 className="text-sm font-semibold text-white mb-4">Network Overview</h2>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
-          <div>
-            <p className="text-2xl font-bold text-white">{ytProducers.length}</p>
-            <p className="text-xs text-[#71717a] mt-0.5">YouTube Producers</p>
-          </div>
-          <div>
-            <p className="text-2xl font-bold text-white">{placementProducers.length}</p>
-            <p className="text-xs text-[#71717a] mt-0.5">Placement Producers</p>
-          </div>
-          <div>
-            <p className="text-2xl font-bold text-white">{[...ytProducers, ...placementProducers].filter(p => p.email).length}</p>
-            <p className="text-xs text-[#71717a] mt-0.5">Emails Found</p>
-          </div>
-          <div>
-            <p className="text-2xl font-bold text-white">{logs.length}</p>
-            <p className="text-xs text-[#71717a] mt-0.5">Discovery Runs</p>
-          </div>
-        </div>
-      </motion.div>
       <QuickEditModal
         producer={editProducer}
         producerType={editProducer?._type}
