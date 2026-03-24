@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Download, Upload, Loader2, X, Check, AlertTriangle, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
+import { normalizeStatus } from '@/lib/normalizeStatus';
 
 // ─── CSV helpers ──────────────────────────────────────────────────────────────
 function escapeCsvCell(val) {
@@ -264,7 +265,7 @@ function MappingModal({ headers, dbFields, initialMapping, existingProducers, ra
         if (NUMBER_FIELDS.has(dbKey)) out[dbKey] = parseInt(val) || 0;
         else if (BOOLEAN_FIELDS.has(dbKey)) out[dbKey] = parseBoolean(val);
         else if (DATE_FIELDS.has(dbKey)) { const d = parseDate(val); if (d) out[dbKey] = d; }
-        else out[dbKey] = val;
+        else out[dbKey] = dbKey === 'status' ? normalizeStatus(val) : val;
       }
     }
     if (out.instagram) out.instagram = normalizeIg(out.instagram);
@@ -463,7 +464,7 @@ export default function CsvImportExport({ producers, entity, type = 'youtube', o
           if (NUMBER_FIELDS.has(dbKey)) out[dbKey] = parseInt(val) || 0;
           else if (BOOLEAN_FIELDS.has(dbKey)) out[dbKey] = parseBoolean(val);
           else if (DATE_FIELDS.has(dbKey)) { const d = parseDate(val); if (d) out[dbKey] = d; }
-          else out[dbKey] = val;
+          else out[dbKey] = dbKey === 'status' ? normalizeStatus(val) : val;
         }
       }
       // Normalize instagram
