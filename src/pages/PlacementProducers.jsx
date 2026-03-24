@@ -11,6 +11,7 @@ import ProducerProfile from '@/components/shared/ProducerProfile';
 import AddProducerDialog from '@/components/shared/AddProducerDialog';
 import BulkActionBar from '@/components/shared/BulkActionBar';
 import CsvImportExport from '@/components/shared/CsvImportExport';
+import StatusBadge from '@/components/shared/StatusBadge';
 import { toast } from 'sonner';
 
 const statuses = ['all', 'por contactar', 'contactado', 'follow up 1', 'follow up 2', 'follow up 3', 'follow up 4', 'follow up 5', 'connection', 'archivado', 'eliminado'];
@@ -59,6 +60,11 @@ export default function PlacementProducers() {
     const matchPriority = priorityFilter === 'all' || p.priority === parseInt(priorityFilter);
     return matchSearch && matchStatus && matchPriority;
   });
+
+  const statusCounts = filtered.reduce((acc, p) => {
+    acc[p.status] = (acc[p.status] || 0) + 1;
+    return acc;
+  }, {});
 
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
   const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
@@ -165,6 +171,20 @@ export default function PlacementProducers() {
         onBulkDelete={handleBulkDelete}
         type="placement"
       />
+
+      {Object.keys(statusCounts).length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          {statuses
+            .filter(s => s !== 'all' && statusCounts[s])
+            .map(s => (
+              <div key={s} className="flex items-center gap-1.5">
+                <StatusBadge status={s} />
+                <span className="text-xs text-[#71717a]">{statusCounts[s]}</span>
+              </div>
+            ))
+          }
+        </div>
+      )}
 
       <ProducerTable
         producers={paginated}
