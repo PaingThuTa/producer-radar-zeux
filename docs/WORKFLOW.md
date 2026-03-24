@@ -41,6 +41,15 @@ Special statuses (set manually):
 
 **Auto-advance logic** (`useAutoAdvanceStatus` hook): runs on page load in Dashboard and Daily Outreach. For each producer with `next_follow_up <= today` and status `contactado`, it advances to the next follow-up step automatically.
 
+**CSV import normalization** (`normalizeStatus` in `src/lib/normalizeStatus.js`): applied automatically during CSV import (both in the mapping preview and on save). Non-standard values are mapped before any record is written:
+
+| Raw CSV value | Normalized to |
+|---------------|---------------|
+| `Contactado/48h`, `contactado/24h`, `CONTACTADO/72h`, etc. | `contactado` |
+| `FOLLOW UP 3`, `Follow Up 5`, etc. | `follow up 3`, `follow up 5`, etc. |
+| Any already-valid status | unchanged (lowercased) |
+| Anything unrecognized | `por contactar` |
+
 ---
 
 ## Priority Scoring
@@ -122,7 +131,7 @@ Final score clamped to range 1–10.
 | Instagram click icon | Sets `last_action = today`, `next_follow_up = +7d` |
 | Favorite toggle | Stars/unstars the producer |
 | Add Producer button | Opens AddProducerDialog to manually add a new YouTube producer |
-| CSV Import | Upload a CSV file to bulk-import producers |
+| CSV Import | Upload a CSV file to bulk-import producers. Status values are normalized automatically (e.g. `Contactado/48h` → `contactado`). |
 | CSV Export | Download current filtered list as CSV |
 | Bulk: Status | Update status for all selected |
 | Bulk: Priority | Update priority for all selected |
@@ -302,3 +311,4 @@ Separate discovery flow for extracting producers from song credits. Saves to `Pl
 | `StatusBadge` | All pages | Color-coded badge for outreach status |
 | `PriorityBar` | All pages | Visual 1–10 priority indicator |
 | `useAutoAdvanceStatus` | Dashboard, Daily Outreach | Hook: auto-advances overdue statuses on load |
+| `normalizeStatus` | CSV import (CsvImportExport) | Utility: maps non-standard status strings to valid pipeline values before saving |
