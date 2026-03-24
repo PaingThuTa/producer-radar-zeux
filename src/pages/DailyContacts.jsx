@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api as base44 } from '@/lib/api-client';
-import { MessageCircle, RefreshCw, Check, Instagram, Mail, Clock, Pencil } from 'lucide-react';
+import { MessageCircle, RefreshCw, Check, Instagram, Mail, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 import PriorityBar from '@/components/shared/PriorityBar';
@@ -43,9 +43,54 @@ function formatFollowUpDate(dateStr) {
   return { label: `in ${diff}d`, color: 'text-[#71717a]' };
 }
 
+const FILTER_OPTS = [
+  { id: 'today', label: 'Today' },
+  { id: 'overdue', label: 'Overdue' },
+  { id: 'upcoming', label: 'Upcoming' },
+  { id: 'all', label: 'All' },
+];
+
+function DateChip({ dateStr }) {
+  if (!dateStr) return (
+    <span className="text-[10px] px-2 py-0.5 rounded-full border bg-red-500/10 text-red-400 border-red-500/20 whitespace-nowrap">
+      No date
+    </span>
+  );
+  const todayStr = new Date().toISOString().split('T')[0];
+  if (dateStr < todayStr) {
+    const diff = Math.round((new Date(todayStr) - new Date(dateStr)) / 86400000);
+    return (
+      <span className="text-[10px] px-2 py-0.5 rounded-full border bg-red-500/10 text-red-400 border-red-500/20 whitespace-nowrap">
+        {diff}d overdue
+      </span>
+    );
+  }
+  if (dateStr === todayStr) return (
+    <span className="text-[10px] px-2 py-0.5 rounded-full border bg-amber-500/10 text-amber-400 border-amber-500/20 whitespace-nowrap">
+      Today
+    </span>
+  );
+  const diff = Math.round((new Date(dateStr) - new Date(todayStr)) / 86400000);
+  return (
+    <span className="text-[10px] px-2 py-0.5 rounded-full border bg-zinc-700/50 text-zinc-400 border-zinc-700 whitespace-nowrap">
+      in {diff}d
+    </span>
+  );
+}
+
+function GroupHeader({ label, color, count, textColor, badgeClass }) {
+  return (
+    <div className={`flex items-center gap-2 px-5 py-2 border-l-2 ${color} bg-white/[0.01]`}>
+      <span className={`text-xs font-semibold uppercase tracking-wide ${textColor}`}>{label}</span>
+      <span className={`text-[10px] px-1.5 py-0.5 rounded-full border ${badgeClass}`}>{count}</span>
+    </div>
+  );
+}
+
 export default function DailyContacts() {
   const queryClient = useQueryClient();
   const [editProducer, setEditProducer] = useState(null);
+  const [filter, setFilter] = useState('due');
 
   const { data: ytProducers = [] } = useQuery({
     queryKey: ['youtube-producers'],
@@ -153,18 +198,25 @@ export default function DailyContacts() {
     ...plProducers.filter(p => p.status === 'por contactar').map(p => ({ ...p, _type: 'pl' })),
   ].sort((a, b) => (b.priority || 0) - (a.priority || 0)).slice(0, 10);
 
-  // Follow ups pendientes: contactado (24h espera) + follow up X con fecha <= hoy
-  const followUpsDue = [
+  const todayStr = new Date().toISOString().split('T')[0];
+
+  // All producers in follow-up pipeline, sorted oldest first
+  const followUps = [
     ...ytProducers.filter(p => p.status?.startsWith('follow up') || p.status === 'contactado').map(p => ({ ...p, _type: 'yt' })),
     ...plProducers.filter(p => p.status?.startsWith('follow up') || p.status === 'contactado').map(p => ({ ...p, _type: 'pl' })),
-  ].filter(p => {
-    if (!p.next_follow_up) return true;
-    const d = new Date(p.next_follow_up); d.setHours(0,0,0,0);
-    return d <= today;
-  }).sort((a, b) => {
+  ].sort((a, b) => {
     const da = a.next_follow_up ? new Date(a.next_follow_up) : new Date(0);
     const db = b.next_follow_up ? new Date(b.next_follow_up) : new Date(0);
     return da - db;
+  });
+
+  const filteredFollowUps = followUps.filter(p => {
+    const d = p.next_follow_up;
+    if (filter === 'due') return !d || d <= todayStr;
+    if (filter === 'today') return d === todayStr;
+    if (filter === 'overdue') return !d || d < todayStr;
+    if (filter === 'upcoming') return d && d > todayStr;
+    return true; // 'all'
   });
 
   return (
@@ -176,70 +228,120 @@ export default function DailyContacts() {
 
       {/* ── Follow Ups Pendientes ── */}
       <section>
-        <div className="flex items-center gap-2 mb-4">
+        <div className="flex items-center gap-2 mb-3">
           <RefreshCw className="w-5 h-5 text-amber-400" />
           <h2 className="text-lg font-semibold text-white">Follow Ups Pendientes</h2>
           <span className="text-xs bg-amber-400/10 text-amber-400 border border-amber-400/20 px-2 py-0.5 rounded-full">
-            {followUpsDue.length}
+            {filteredFollowUps.length}
           </span>
         </div>
 
-        {followUpsDue.length === 0 ? (
+        {/* Filter bar */}
+        <div className="flex items-center gap-1.5 mb-4">
+          {FILTER_OPTS.map(opt => {
+            const isActive = filter === opt.id || (filter === 'due' && (opt.id === 'today' || opt.id === 'overdue'));
+            return (
+              <button
+                key={opt.id}
+                onClick={() => setFilter(opt.id)}
+                className={`text-xs px-3 py-1 rounded-full border transition-colors ${
+                  isActive
+                    ? 'bg-amber-500/15 text-amber-400 border-amber-500/30'
+                    : 'bg-transparent text-[#71717a] border-[#27272a] hover:text-white hover:border-[#3f3f46]'
+                }`}
+              >
+                {opt.label}
+              </button>
+            );
+          })}
+        </div>
+
+        {filteredFollowUps.length === 0 ? (
           <div className="bg-[#18181b] border border-[#27272a] rounded-xl p-8 text-center text-[#3f3f46]">
-            No hay follow ups pendientes para hoy 🎉
+            No hay follow ups para este filtro
           </div>
-        ) : (
-          <div className="bg-[#18181b] border border-[#27272a] rounded-xl divide-y divide-[#27272a]">
-            {followUpsDue.map(p => {
-              const fu = formatFollowUpDate(p.next_follow_up);
-              return (
-                <div key={p.id} className="flex items-center justify-between px-5 py-3 hover:bg-white/[0.02]">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <p className="text-sm font-medium text-white">{p.name}</p>
-                      <span className={`text-[10px] px-1.5 py-0.5 rounded border ${
-                        p._type === 'yt'
-                          ? 'bg-red-500/10 text-red-400 border-red-500/20'
-                          : 'bg-purple-500/10 text-purple-400 border-purple-500/20'
-                      }`}>
-                        {p._type === 'yt' ? 'YouTube' : 'Placement'}
-                      </span>
-                      <StatusBadge status={p.status} />
-                      {p.re_dms === 'no' && (
-                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-red-500/10 text-red-400 border border-red-500/20">
-                          Re-DMs: NO
-                        </span>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-3 mt-0.5">
-                      {p.instagram && <span className="text-xs text-[#71717a]">{p.instagram}</span>}
-                      {fu && (
-                        <span className={`text-xs ${fu.color} flex items-center gap-1`}>
-                          <Clock className="w-3 h-3" />{fu.label}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <PriorityBar score={p.priority || 0} max={p._type === 'yt' ? 8 : 10} />
-                    <Button size="sm" variant="ghost"
-                      onClick={() => setEditProducer(p)}
-                      className="text-[#71717a] hover:text-white hover:bg-[#27272a] p-2">
-                      <Pencil className="w-3.5 h-3.5" />
-                    </Button>
-                    <Button size="sm" variant="ghost"
-                      onClick={() => p._type === 'yt'
-                        ? advanceFollowUpYT.mutate({ id: p.id, currentStatus: p.status, re_dms: p.re_dms })
-                        : advanceFollowUpPL.mutate({ id: p.id, currentStatus: p.status, re_dms: p.re_dms })}
-                      className="text-amber-400 hover:text-amber-300 hover:bg-amber-500/10 whitespace-nowrap">
-                      <Check className="w-4 h-4 mr-1" /> Hecho
-                    </Button>
-                  </div>
+        ) : (() => {
+          const showGroups = filter === 'due' || filter === 'all';
+          const overdueItems = showGroups ? filteredFollowUps.filter(p => !p.next_follow_up || p.next_follow_up < todayStr) : [];
+          const todayItems = showGroups ? filteredFollowUps.filter(p => p.next_follow_up === todayStr) : [];
+          const upcomingItems = showGroups && filter === 'all' ? filteredFollowUps.filter(p => p.next_follow_up && p.next_follow_up > todayStr) : [];
+
+          const renderRow = (p) => (
+            <div key={p.id} className="flex items-center gap-4 px-5 py-3 hover:bg-white/[0.02]">
+              {/* Left: name + instagram + badges */}
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-white truncate">{p.name}</p>
+                {p.instagram && (
+                  <p className="text-xs text-[#71717a] truncate mt-0.5">{p.instagram}</p>
+                )}
+                <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                  <span className={`text-[10px] px-1.5 py-0.5 rounded border ${
+                    p._type === 'yt'
+                      ? 'bg-red-500/10 text-red-400 border-red-500/20'
+                      : 'bg-purple-500/10 text-purple-400 border-purple-500/20'
+                  }`}>
+                    {p._type === 'yt' ? 'YouTube' : 'Placement'}
+                  </span>
+                  <StatusBadge status={p.status} />
+                  {p.re_dms === 'no' && (
+                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-red-500/10 text-red-400 border border-red-500/20">
+                      Re-DMs: NO
+                    </span>
+                  )}
                 </div>
-              );
-            })}
-          </div>
-        )}
+              </div>
+              {/* Middle: date chip */}
+              <div className="flex-shrink-0">
+                <DateChip dateStr={p.next_follow_up} />
+              </div>
+              {/* Right: priority + actions */}
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <PriorityBar score={p.priority || 0} max={p._type === 'yt' ? 8 : 10} />
+                <Button size="sm" variant="ghost"
+                  onClick={() => setEditProducer(p)}
+                  className="text-[#71717a] hover:text-white hover:bg-[#27272a] p-2">
+                  <Pencil className="w-3.5 h-3.5" />
+                </Button>
+                <Button size="sm" variant="ghost"
+                  onClick={() => p._type === 'yt'
+                    ? advanceFollowUpYT.mutate({ id: p.id, currentStatus: p.status, re_dms: p.re_dms })
+                    : advanceFollowUpPL.mutate({ id: p.id, currentStatus: p.status, re_dms: p.re_dms })}
+                  className="text-amber-400 hover:text-amber-300 hover:bg-amber-500/10 whitespace-nowrap">
+                  <Check className="w-4 h-4 mr-1" /> Hecho
+                </Button>
+              </div>
+            </div>
+          );
+
+          return (
+            <div className="bg-[#18181b] border border-[#27272a] rounded-xl divide-y divide-[#27272a]">
+              {showGroups ? (
+                <>
+                  {overdueItems.length > 0 && (
+                    <>
+                      <GroupHeader label="Overdue" color="border-red-500" textColor="text-red-400" badgeClass="bg-red-500/10 text-red-400 border-red-500/20" count={overdueItems.length} />
+                      {overdueItems.map(renderRow)}
+                    </>
+                  )}
+                  {todayItems.length > 0 && (
+                    <>
+                      <GroupHeader label="Today" color="border-amber-500" textColor="text-amber-400" badgeClass="bg-amber-500/10 text-amber-400 border-amber-500/20" count={todayItems.length} />
+                      {todayItems.map(renderRow)}
+                    </>
+                  )}
+                  {upcomingItems.length > 0 && (
+                    <>
+                      <GroupHeader label="Upcoming" color="border-zinc-500" textColor="text-zinc-400" badgeClass="bg-zinc-700/50 text-zinc-400 border-zinc-700" count={upcomingItems.length} />
+                      {upcomingItems.map(renderRow)}
+                    </>
+                  )}
+                </>
+              ) : (
+                filteredFollowUps.map(renderRow)
+              )}
+            </div>
+          );
+        })()}
       </section>
 
       {/* ── Daily DMs ── */}
