@@ -11,14 +11,9 @@
  */
 
 // Load .env if present (optional — works without it if DATABASE_URL is exported)
-try {
-  const { config } = await import('dotenv');
-  config();
-} catch {
-  // dotenv not installed — DATABASE_URL must be set in the environment
-}
+try { require('dotenv').config(); } catch { /* dotenv not installed — DATABASE_URL must be in env */ }
 
-import { PrismaClient } from '@prisma/client';
+const { PrismaClient } = require('@prisma/client');
 
 const prisma = new PrismaClient();
 
