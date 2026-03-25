@@ -14,6 +14,14 @@ import { prisma } from '@/lib/db';
 
 const GENIUS_BASE = 'https://api.genius.com';
 
+const STYLE_ARTISTS = {
+  'Juice WRLD': 'Juice WRLD',
+  'Polo G': 'Polo G',
+  'Rod Wave': 'Rod Wave',
+  'NBA YoungBoy': 'NBA YoungBoy',
+};
+const BIG_NAMES = new Set(Object.keys(STYLE_ARTISTS));
+
 function geniusFetch(path, token) {
   return fetch(`${GENIUS_BASE}${path}`, {
     headers: { Authorization: `Bearer ${token}` },
@@ -129,6 +137,7 @@ export default async function handler(req, res) {
             instagram,
             song: songTitle,
             artist: artistName,
+            artists: artistName ? [artistName] : [],
             isDuplicate: existingNames.has(key),
           });
         } else {
@@ -136,6 +145,9 @@ export default async function handler(req, res) {
           const found = discoveredProducers.get(key);
           if (songTitle && !found.song.includes(songTitle)) {
             found.song = found.song ? `${found.song}, ${songTitle}` : songTitle;
+          }
+          if (artistName && !found.artists.includes(artistName)) {
+            found.artists.push(artistName);
           }
           if (!found.instagram && instagram) {
             found.instagram = instagram;
@@ -155,7 +167,14 @@ export default async function handler(req, res) {
   }
 
   return res.status(200).json({
-    producers: [...discoveredProducers.values()],
+    producers: [...discoveredProducers.values()].map(p => {
+      const bigNames = p.artists.filter(a => BIG_NAMES.has(a));
+      const otherNames = p.artists.filter(a => !BIG_NAMES.has(a));
+      const placements = [...bigNames, ...otherNames].join(', ');
+      const style = bigNames.length > 0 ? STYLE_ARTISTS[bigNames[0]] : '';
+      const { artists, ...rest } = p;
+      return { ...rest, placements, style };
+    }),
     songResults,
   });
 }

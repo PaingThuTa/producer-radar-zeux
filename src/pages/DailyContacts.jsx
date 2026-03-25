@@ -179,6 +179,24 @@ export default function DailyContacts() {
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['placement-producers'] }); toast.success('Follow up avanzado'); },
   });
 
+  const igClickYT = useMutation({
+    mutationFn: (id) => {
+      const today = new Date().toISOString().split('T')[0];
+      const next = new Date(); next.setDate(next.getDate() + 7);
+      return api.entities.YouTubeProducer.update(id, { last_action: today, next_follow_up: next.toISOString().split('T')[0] });
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['youtube-producers'] }),
+  });
+
+  const igClickPL = useMutation({
+    mutationFn: (id) => {
+      const today = new Date().toISOString().split('T')[0];
+      const next = new Date(); next.setDate(next.getDate() + 7);
+      return api.entities.PlacementProducer.update(id, { last_action: today, next_follow_up: next.toISOString().split('T')[0] });
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['placement-producers'] }),
+  });
+
   const today = new Date(); today.setHours(0,0,0,0);
 
   useAutoAdvanceStatus(ytProducers, plProducers, () => {
@@ -271,7 +289,12 @@ export default function DailyContacts() {
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-white truncate">{p.name}</p>
                 {p.instagram && (
-                  <p className="text-xs text-[#71717a] truncate mt-0.5">{p.instagram}</p>
+                  <a href={`https://instagram.com/${p.instagram.replace('@', '')}`}
+                    target="_blank" rel="noopener noreferrer"
+                    onClick={() => p._type === 'yt' ? igClickYT.mutate(p.id) : igClickPL.mutate(p.id)}
+                    className="flex items-center gap-1 text-xs text-[#a1a1aa] hover:text-[#e1306c] transition-colors mt-0.5">
+                    <Instagram className="w-3 h-3" />{p.instagram.replace('@', '')}
+                  </a>
                 )}
                 <div className="flex items-center gap-1.5 mt-1 flex-wrap">
                   <span className={`text-[10px] px-1.5 py-0.5 rounded border ${
@@ -380,7 +403,8 @@ export default function DailyContacts() {
                   <div className="flex items-center gap-3 mt-1 flex-wrap">
                     {p.instagram && (
                       <a href={`https://instagram.com/${p.instagram.replace('@','')}`} target="_blank" rel="noopener noreferrer"
-                        className="flex items-center gap-1 text-xs text-[#71717a] hover:text-[#3b82f6] transition-colors">
+                        onClick={() => p._type === 'yt' ? igClickYT.mutate(p.id) : igClickPL.mutate(p.id)}
+                        className="flex items-center gap-1 text-xs text-[#a1a1aa] hover:text-[#e1306c] transition-colors">
                         <Instagram className="w-3 h-3" />{p.instagram}
                       </a>
                     )}

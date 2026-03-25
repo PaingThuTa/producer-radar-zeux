@@ -54,11 +54,11 @@ export default function PlacementProducers() {
 
   const HIDDEN = ['archivado', 'eliminado', 'contactado', 'follow up 1', 'follow up 2', 'follow up 3', 'follow up 4', 'follow up 5'];
   const filtered = producers.filter(p => {
-    if (statusFilter === 'all' && HIDDEN.includes(p.status)) return false;
     const matchSearch = !search || p.name?.toLowerCase().includes(search.toLowerCase()) || p.artist?.toLowerCase().includes(search.toLowerCase());
     const matchStatus = statusFilter === 'all' || p.status === statusFilter;
+    const matchHidden = search || statusFilter !== 'all' || !HIDDEN.includes(p.status);
     const matchPriority = priorityFilter === 'all' || p.priority === parseInt(priorityFilter);
-    return matchSearch && matchStatus && matchPriority;
+    return matchSearch && matchStatus && matchHidden && matchPriority;
   });
 
   const statusCounts = filtered.reduce((acc, p) => {

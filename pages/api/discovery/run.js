@@ -97,6 +97,7 @@ export default async function handler(req, res) {
     channelMap[ch.id] = {
       subscriberCount: parseInt(ch.statistics?.subscriberCount || '0'),
       customUrl: ch.snippet?.customUrl || '',
+      title: ch.snippet?.title || '',
       description: ch.brandingSettings?.channel?.description || ch.snippet?.description || '',
     };
   }
@@ -118,6 +119,7 @@ export default async function handler(req, res) {
     return {
       producer_name: channelName,
       channel_name: channelName,
+      youtube_channel: channelInfo.customUrl || channelInfo.title || '',
       channel_url: `https://youtube.com/@${handle}`,
       video_title: videoTitle,
       video_url: `https://youtube.com/watch?v=${videoId}`,
