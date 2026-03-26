@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api-client';
 import { Input } from '@/components/ui/input';
@@ -20,6 +20,7 @@ const plPriorities = ['all', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
 export default function PlacementProducers() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const initializedFilter = useRef(false);
   const [priorityFilter, setPriorityFilter] = useState('all');
   const [selected, setSelected] = useState(null);
   const [showAdd, setShowAdd] = useState(false);
@@ -33,6 +34,15 @@ export default function PlacementProducers() {
     queryKey: ['placement-producers'],
     queryFn: () => api.entities.PlacementProducer.list('-created_date', 5000),
   });
+
+  useEffect(() => {
+    if (!initializedFilter.current && producers.length > 0) {
+      initializedFilter.current = true;
+      if (producers.some(p => p.status === 'por contactar')) {
+        setStatusFilter('por contactar');
+      }
+    }
+  }, [producers]);
 
   const updateMutation = useMutation({
     mutationFn: ({ id, data }) => api.entities.PlacementProducer.update(id, data),
@@ -52,13 +62,11 @@ export default function PlacementProducers() {
     },
   });
 
-  const HIDDEN = ['archivado', 'eliminado', 'contactado', 'follow up 1', 'follow up 2', 'follow up 3', 'follow up 4', 'follow up 5'];
   const filtered = producers.filter(p => {
     const matchSearch = !search || p.name?.toLowerCase().includes(search.toLowerCase()) || p.artist?.toLowerCase().includes(search.toLowerCase());
     const matchStatus = statusFilter === 'all' || p.status === statusFilter;
-    const matchHidden = search || statusFilter !== 'all' || !HIDDEN.includes(p.status);
     const matchPriority = priorityFilter === 'all' || p.priority === parseInt(priorityFilter);
-    return matchSearch && matchStatus && matchHidden && matchPriority;
+    return matchSearch && matchStatus && matchPriority;
   });
 
   const statusCounts = filtered.reduce((acc, p) => {
