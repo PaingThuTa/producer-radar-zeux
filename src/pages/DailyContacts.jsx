@@ -210,7 +210,7 @@ export default function DailyContacts() {
     ...plProducers.filter(p => p.status === 'por contactar').map(p => ({ ...p, _type: 'pl' })),
   ].sort((a, b) => (b.priority || 0) - (a.priority || 0)).slice(0, 10);
 
-  const todayStr = new Date().toISOString().split('T')[0];
+  const todayStr = new Date().toLocaleDateString('en-CA');
 
   // All producers in follow-up pipeline, sorted oldest first
   const followUps = [
@@ -222,9 +222,9 @@ export default function DailyContacts() {
     return da - db;
   });
 
-  const overdueItems = followUps.filter(p => !p.next_follow_up || p.next_follow_up < todayStr);
-  const todayItems = followUps.filter(p => p.next_follow_up === todayStr);
-  const upcomingItems = followUps.filter(p => p.next_follow_up && p.next_follow_up > todayStr);
+  const overdueItems = followUps.filter(p => !p.next_follow_up || p.next_follow_up.slice(0, 10) < todayStr);
+  const todayItems = followUps.filter(p => p.next_follow_up && p.next_follow_up.slice(0, 10) === todayStr);
+  const upcomingItems = followUps.filter(p => p.next_follow_up && p.next_follow_up.slice(0, 10) > todayStr);
   const dueCount = overdueItems.length + todayItems.length;
 
   return (

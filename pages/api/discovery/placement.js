@@ -22,6 +22,14 @@ const STYLE_ARTISTS = {
 };
 const BIG_NAMES = new Set(Object.keys(STYLE_ARTISTS));
 
+function normalizeInstagram(ig) {
+  if (!ig || typeof ig !== 'string') return null;
+  const trimmed = ig.trim().replace(/\/$/, '');
+  const parts = trimmed.split('/');
+  const handle = parts[parts.length - 1].toLowerCase();
+  return handle || null;
+}
+
 function geniusFetch(path, token) {
   return fetch(`${GENIUS_BASE}${path}`, {
     headers: { Authorization: `Bearer ${token}` },
@@ -60,9 +68,12 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'urls must be a non-empty array' });
   }
 
-  // Load existing producer names for deduplication
-  const existing = await prisma.placementProducer.findMany({ select: { name: true } });
+  // Load existing producer names and instagram handles for deduplication
+  const existing = await prisma.placementProducer.findMany({ select: { name: true, instagram: true } });
   const existingNames = new Set(existing.map(p => p.name.toLowerCase()));
+  const existingHandles = new Set(
+    existing.map(p => normalizeInstagram(p.instagram)).filter(Boolean)
+  );
 
   const songResults = [];
   // Track producers discovered across all songs (by name, case-insensitive)
@@ -131,6 +142,7 @@ export default async function handler(req, res) {
         songProducers.push({ name: producer.name, instagram });
 
         const key = producer.name.toLowerCase();
+        const handle = normalizeInstagram(instagram);
         if (!discoveredProducers.has(key)) {
           discoveredProducers.set(key, {
             name: producer.name,
@@ -138,7 +150,7 @@ export default async function handler(req, res) {
             song: songTitle,
             artist: artistName,
             artists: artistName ? [artistName] : [],
-            isDuplicate: existingNames.has(key),
+            isDuplicate: existingNames.has(key) || (handle !== null && existingHandles.has(handle)),
           });
         } else {
           // Merge song info for producers found across multiple URLs

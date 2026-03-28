@@ -75,5 +75,6 @@ model DiscoveryLog {
   producers_added    Int?     @default(0)
   duplicates_skipped Int?     @default(0)
   filtered_out       Int?     @default(0)
+  re_added           Int?     @default(0)
   created_date       DateTime @default(now())
 }

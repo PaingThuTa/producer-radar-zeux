@@ -108,19 +108,23 @@ export default function DiscoveryRunner() {
     try {
       log = await api.entities.DiscoveryLog.create({
         query, source: 'YouTube', status: 'running',
-        producers_found: 0, producers_added: 0, duplicates_skipped: 0, filtered_out: 0,
+        producers_found: 0, producers_added: 0, duplicates_skipped: 0, filtered_out: 0, re_added: 0,
       });
 
       // Load existing for dupe check (both tables)
       const existing = await api.entities.YouTubeProducer.list('-created_date', 500);
       const existingPl = await api.entities.PlacementProducer.list('-created_date', 500);
       const existingNames = new Set(existing.map(p => p.name?.toLowerCase()));
-      const existingIGs = new Set([
-        ...existing.map(p => p.instagram?.toLowerCase().replace('@', '')).filter(Boolean),
-        ...existingPl.map(p => p.instagram?.toLowerCase().replace('@', '')).filter(Boolean),
-      ]);
+      const existingYTIGMap = new Map(
+        existing
+          .filter(p => p.instagram)
+          .map(p => [p.instagram.toLowerCase().replace('@', ''), p])
+      );
+      const existingPlIGs = new Set(
+        existingPl.map(p => p.instagram?.toLowerCase().replace('@', '')).filter(Boolean)
+      );
 
-      let added = 0, dupes = 0, filtered = 0, totalFound = 0;
+      let added = 0, dupes = 0, filtered = 0, totalFound = 0, reAdded = 0;
       const batchSize = 15;
       const maxBatches = Math.ceil(scanLimit / batchSize);
       const targetNew = Math.floor(scanLimit / 5);
@@ -158,7 +162,26 @@ export default function DiscoveryRunner() {
           const igBio = contacts?.instagram_bio || '';
 
           if (followers > 15000) { filtered++; continue; }
-          if (instagram && existingIGs.has(instagram.toLowerCase())) { dupes++; continue; }
+          if (instagram) {
+            const igKey = instagram.toLowerCase();
+            if (existingYTIGMap.has(igKey)) {
+              const match = existingYTIGMap.get(igKey);
+              const resetStatuses = ['follow up 3', 'follow up 4', 'follow up 5', 'archivado'];
+              const canReset = match.re_dms !== 'no' && resetStatuses.includes(match.status);
+              if (canReset) {
+                await api.entities.YouTubeProducer.update(match.id, {
+                  status: 'por contactar',
+                  next_follow_up: null,
+                  last_action: null,
+                });
+                reAdded++;
+              } else {
+                dupes++;
+              }
+              continue;
+            }
+            if (existingPlIGs.has(igKey)) { dupes++; continue; }
+          }
 
           const style = classifyStyle(query, p.video_title);
 
@@ -184,7 +207,7 @@ export default function DiscoveryRunner() {
 
           await api.entities.YouTubeProducer.create(producerData);
           existingNames.add(producerName.toLowerCase());
-          if (instagram) existingIGs.add(instagram.toLowerCase());
+          if (instagram) existingYTIGMap.set(instagram.toLowerCase(), producerData);
           added++;
         }
 
@@ -197,11 +220,14 @@ export default function DiscoveryRunner() {
         producers_added: added,
         duplicates_skipped: dupes,
         filtered_out: filtered,
+        re_added: reAdded,
       });
 
       queryClient.invalidateQueries({ queryKey: ['youtube-producers'] });
       queryClient.invalidateQueries({ queryKey: ['discovery-logs'] });
-      toast.success(`Discovery complete: ${added} producers added`);
+      const toastParts = [`${added} added`];
+      if (reAdded > 0) toastParts.push(`${reAdded} re-added`);
+      toast.success(`Discovery complete: ${toastParts.join(', ')}`);
     } catch (err) {
       toast.error(err.message || 'Discovery failed');
       if (log?.id) {

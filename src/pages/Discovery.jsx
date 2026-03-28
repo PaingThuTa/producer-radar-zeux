@@ -98,7 +98,7 @@ export default function Discovery() {
                     {log.producers_found || 0} found · {log.producers_added || 0} added
                   </p>
                   <p className="text-xs text-[#71717a]">
-                    {log.duplicates_skipped || 0} dupes · {log.filtered_out || 0} filtered
+                    {log.duplicates_skipped || 0} dupes · {log.filtered_out || 0} filtered{log.re_added > 0 ? ` · ${log.re_added} re-added` : ''}
                   </p>
                 </div>
                 <StatusBadge status={log.status || 'completed'} />
