@@ -2,6 +2,13 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+
+## Instructions for Claude Code
+- Do NOT explore or scan the codebase at session start
+- Do NOT read files unless directly needed for the current task
+- Trust this CLAUDE.md as the complete source of truth for architecture
+- Only open files that are explicitly mentioned in the task
+
 ## Commands
 
 ```bash
