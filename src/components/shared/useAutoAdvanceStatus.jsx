@@ -51,7 +51,7 @@ export function useAutoAdvanceStatus(ytProducers = [], plProducers = [], onAdvan
       if (!p.next_follow_up) return false;
       const d = new Date(p.next_follow_up);
       d.setHours(0, 0, 0, 0);
-      return d <= today;
+      return d < today;
     };
 
     const getNext = (status) => {
