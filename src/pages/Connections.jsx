@@ -14,7 +14,7 @@ export default function Connections() {
   const [search, setSearch] = useState('');
   const [selected, setSelected] = useState(null);
   const [selectedType, setSelectedType] = useState(null);
-  const [activeTab, setActiveTab] = useState('youtube');
+  const [activeTab, setActiveTab] = useState('placement');
 
   const queryClient = useQueryClient();
 
@@ -85,26 +85,6 @@ export default function Connections() {
       {/* Tab switcher */}
       <div className="flex items-center gap-1 p-1 bg-[#18181b] border border-[#27272a] rounded-lg w-fit">
         <button
-          onClick={() => setActiveTab('youtube')}
-          className={cn(
-            "flex items-center gap-2 px-4 py-1.5 rounded-lg text-sm font-medium transition-all",
-            activeTab === 'youtube'
-              ? "bg-[#27272a] text-white"
-              : "text-[#71717a] hover:text-white"
-          )}
-        >
-          <Youtube className="w-4 h-4 text-red-400" />
-          YouTube
-          <span className={cn(
-            "text-xs px-1.5 py-0.5 rounded-full border",
-            activeTab === 'youtube'
-              ? "bg-red-500/10 text-red-400 border-red-500/20"
-              : "bg-[#27272a] text-[#52525b] border-[#27272a]"
-          )}>
-            {ytConnections.length}
-          </span>
-        </button>
-        <button
           onClick={() => setActiveTab('placement')}
           className={cn(
             "flex items-center gap-2 px-4 py-1.5 rounded-lg text-sm font-medium transition-all",
@@ -122,6 +102,26 @@ export default function Connections() {
               : "bg-[#27272a] text-[#52525b] border-[#27272a]"
           )}>
             {plConnections.length}
+          </span>
+        </button>
+        <button
+          onClick={() => setActiveTab('youtube')}
+          className={cn(
+            "flex items-center gap-2 px-4 py-1.5 rounded-lg text-sm font-medium transition-all",
+            activeTab === 'youtube'
+              ? "bg-[#27272a] text-white"
+              : "text-[#71717a] hover:text-white"
+          )}
+        >
+          <Youtube className="w-4 h-4 text-red-400" />
+          YouTube
+          <span className={cn(
+            "text-xs px-1.5 py-0.5 rounded-full border",
+            activeTab === 'youtube'
+              ? "bg-red-500/10 text-red-400 border-red-500/20"
+              : "bg-[#27272a] text-[#52525b] border-[#27272a]"
+          )}>
+            {ytConnections.length}
           </span>
         </button>
       </div>
