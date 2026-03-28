@@ -10,9 +10,14 @@ export default async function handler(req, res) {
   }
 
   if (req.method === 'PUT') {
-    const { id: _id, created_date: _cd, ...data } = req.body;
-    const producer = await prisma.youTubeProducer.update({ where: { id }, data });
-    return res.status(200).json(producer);
+    const { id: _id, created_date: _cd, _type: _t, ...data } = req.body;
+    try {
+      const producer = await prisma.youTubeProducer.update({ where: { id }, data });
+      return res.status(200).json(producer);
+    } catch (err) {
+      console.error('[PUT /youtube-producers/:id]', err.message);
+      return res.status(500).json({ error: err.message });
+    }
   }
 
   if (req.method === 'DELETE') {

@@ -38,7 +38,23 @@ export default function QuickEditModal({ producer, producerType, onClose, onSave
     const entity = producerType === 'yt'
       ? api.entities.YouTubeProducer
       : api.entities.PlacementProducer;
-    await entity.update(producer.id, form);
+
+    const DATE_FIELDS = ['next_follow_up', 'last_action'];
+    const payload = Object.fromEntries(
+      Object.entries(form)
+        .filter(([key, val]) => {
+          if (!DATE_FIELDS.includes(key) || !val) return true;
+          return !isNaN(new Date(val));
+        })
+        .map(([key, val]) => {
+          if (DATE_FIELDS.includes(key) && val) {
+            return [key, new Date(val).toISOString()];
+          }
+          return [key, val];
+        })
+    );
+
+    await entity.update(producer.id, payload);
     toast.success('Productor actualizado');
     setSaving(false);
     onSaved?.();
