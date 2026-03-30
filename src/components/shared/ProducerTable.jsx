@@ -90,6 +90,9 @@ export default function ProducerTable({
     phone: 'Phone',
   };
 
+  // Columns hidden on mobile (below sm = 640px); name, instagram, status always visible
+  const mobileHidden = new Set(['youtube', 'subscribers', 'style', 'placements', 'priority', 'next_follow_up', 'last_action', 'type', 'phone']);
+
   return (
     <div className="bg-[#18181b] border border-[#27272a] rounded-xl overflow-hidden">
       <div className="overflow-x-auto">
@@ -104,7 +107,7 @@ export default function ProducerTable({
               </th>
               <th className="w-7 py-3" />
               {columns.map(col => (
-                <th key={col} className="text-[#71717a] text-xs font-medium px-4 py-3 text-left whitespace-nowrap">
+                <th key={col} className={`text-[#71717a] text-xs font-medium px-4 py-3 text-left whitespace-nowrap${mobileHidden.has(col) ? ' hidden sm:table-cell' : ''}`}>
                   {colLabels[col] || col}
                 </th>
               ))}
@@ -136,7 +139,7 @@ export default function ProducerTable({
                   </td>
 
                   {columns.map(col => (
-                    <td key={col} className="py-2.5 px-4">
+                    <td key={col} className={`py-2.5 px-4${mobileHidden.has(col) ? ' hidden sm:table-cell' : ''}`}>
                       {col === 'name' && (
                         <span className="text-white font-medium text-sm whitespace-nowrap">{producer.name}</span>
                       )}

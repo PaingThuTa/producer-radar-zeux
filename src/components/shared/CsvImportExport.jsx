@@ -583,7 +583,7 @@ export default function CsvImportExport({ producers, entity, type = 'youtube', o
           className="border-[#27272a] text-[#a1a1aa] hover:text-white hover:bg-[#27272a] gap-1.5"
         >
           <Download className="w-3.5 h-3.5" />
-          Export CSV
+          <span className="hidden sm:inline">Export CSV</span>
         </Button>
         <Button
           onClick={() => fileRef.current?.click()}
@@ -593,7 +593,7 @@ export default function CsvImportExport({ producers, entity, type = 'youtube', o
           className="border-[#27272a] text-[#a1a1aa] hover:text-white hover:bg-[#27272a] gap-1.5"
         >
           {importing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
-          Import Producers from CSV
+          <span className="hidden sm:inline">Import Producers from CSV</span>
         </Button>
         {!confirmClear ? (
           <Button
@@ -604,7 +604,7 @@ export default function CsvImportExport({ producers, entity, type = 'youtube', o
             className="border-[#27272a] text-red-400 hover:text-red-300 hover:bg-[#27272a] gap-1.5"
           >
             <Trash2 className="w-3.5 h-3.5" />
-            Clear All Data
+            <span className="hidden sm:inline">Clear All Data</span>
           </Button>
         ) : (
           <div className="flex items-center gap-1.5 border border-red-800 rounded-md px-3 py-1.5 bg-red-950/30">

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api-client';
 import { Input } from '@/components/ui/input';
@@ -15,7 +15,6 @@ import StatusBadge from '@/components/shared/StatusBadge';
 import { toast } from 'sonner';
 
 const statuses = ['all', 'por contactar', 'contactado', 'follow up 1', 'follow up 2', 'follow up 3', 'follow up 4', 'follow up 5', 'connection', 'archivado', 'eliminado'];
-const styles = ['all', 'Juice WRLD', 'Polo G', 'Rod Wave', 'NBA YoungBoy', 'Melodic Trap', 'Emo Trap', 'Emotional Guitars', 'Other'];
 const ytPriorities = ['all', '1', '2', '3', '4', '5'];
 const subRanges = [
   { label: 'All Subscribers', value: 'all' },
@@ -44,6 +43,11 @@ export default function YouTubeProducers() {
     queryKey: ['youtube-producers'],
     queryFn: () => api.entities.YouTubeProducer.list('-created_date', 5000),
   });
+
+  const styles = useMemo(
+    () => ['all', ...[...new Set(producers.map(p => p.style).filter(Boolean))].sort()],
+    [producers]
+  );
 
   const updateMutation = useMutation({
     mutationFn: ({ id, data }) => api.entities.YouTubeProducer.update(id, data),
@@ -137,12 +141,12 @@ export default function YouTubeProducers() {
 
   return (
     <div className="space-y-5">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-start justify-between gap-2">
         <div>
           <h1 className="text-2xl font-bold text-white">YouTube Producers</h1>
           <p className="text-[#71717a] text-sm mt-1">{producers.length} producers discovered</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-shrink-0">
           <CsvImportExport
             producers={producers}
             entity={api.entities.YouTubeProducer}
@@ -157,14 +161,14 @@ export default function YouTubeProducers() {
 
       {/* Filters */}
       <div className="flex flex-wrap gap-3">
-        <div className="relative flex-1 min-w-[200px] max-w-sm">
+        <div className="relative flex-1 min-w-0 w-full sm:w-auto sm:max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#71717a]" />
           <Input value={search} onChange={e => setSearch(e.target.value)}
             placeholder="Search by name or Instagram..."
             className="pl-10 bg-[#18181b] border-[#27272a] text-white text-sm" />
         </div>
         <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-[160px] bg-[#18181b] border-[#27272a] text-white text-sm">
+          <SelectTrigger className="w-full sm:w-[160px] bg-[#18181b] border-[#27272a] text-white text-sm">
             <SelectValue placeholder="Status" />
           </SelectTrigger>
           <SelectContent className="bg-[#1e1e22] border-[#27272a]">
@@ -172,7 +176,7 @@ export default function YouTubeProducers() {
           </SelectContent>
         </Select>
         <Select value={styleFilter} onValueChange={setStyleFilter}>
-          <SelectTrigger className="w-[160px] bg-[#18181b] border-[#27272a] text-white text-sm">
+          <SelectTrigger className="w-full sm:w-[160px] bg-[#18181b] border-[#27272a] text-white text-sm">
             <SelectValue placeholder="Style" />
           </SelectTrigger>
           <SelectContent className="bg-[#1e1e22] border-[#27272a]">
@@ -180,7 +184,7 @@ export default function YouTubeProducers() {
           </SelectContent>
         </Select>
         <Select value={subFilter} onValueChange={setSubFilter}>
-          <SelectTrigger className="w-[160px] bg-[#18181b] border-[#27272a] text-white text-sm">
+          <SelectTrigger className="w-full sm:w-[160px] bg-[#18181b] border-[#27272a] text-white text-sm">
             <SelectValue placeholder="Subscribers" />
           </SelectTrigger>
           <SelectContent className="bg-[#1e1e22] border-[#27272a]">
@@ -188,7 +192,7 @@ export default function YouTubeProducers() {
           </SelectContent>
         </Select>
         <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-          <SelectTrigger className="w-[140px] bg-[#18181b] border-[#27272a] text-white text-sm">
+          <SelectTrigger className="w-full sm:w-[140px] bg-[#18181b] border-[#27272a] text-white text-sm">
             <SelectValue placeholder="Priority" />
           </SelectTrigger>
           <SelectContent className="bg-[#1e1e22] border-[#27272a]">

@@ -125,12 +125,12 @@ export default function PlacementProducers() {
 
   return (
     <div className="space-y-5">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-start justify-between gap-2">
         <div>
           <h1 className="text-2xl font-bold text-white">Placement Producers</h1>
           <p className="text-[#71717a] text-sm mt-1">{producers.length} producers from song credits</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-shrink-0">
           <CsvImportExport
             producers={producers}
             entity={api.entities.PlacementProducer}
@@ -144,14 +144,14 @@ export default function PlacementProducers() {
       </div>
 
       <div className="flex flex-wrap gap-3">
-        <div className="relative flex-1 min-w-[200px] max-w-sm">
+        <div className="relative flex-1 min-w-0 w-full sm:w-auto sm:max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#71717a]" />
           <Input value={search} onChange={e => setSearch(e.target.value)}
             placeholder="Search by name or artist..."
             className="pl-10 bg-[#18181b] border-[#27272a] text-white text-sm rounded-lg" />
         </div>
         <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-[160px] bg-[#18181b] border-[#27272a] text-white text-sm rounded-lg">
+          <SelectTrigger className="w-full sm:w-[160px] bg-[#18181b] border-[#27272a] text-white text-sm rounded-lg">
             <SelectValue placeholder="Status" />
           </SelectTrigger>
           <SelectContent className="bg-[#1e1e22] border-[#27272a]">
@@ -159,7 +159,7 @@ export default function PlacementProducers() {
           </SelectContent>
         </Select>
         <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-          <SelectTrigger className="w-[140px] bg-[#18181b] border-[#27272a] text-white text-sm rounded-lg">
+          <SelectTrigger className="w-full sm:w-[140px] bg-[#18181b] border-[#27272a] text-white text-sm rounded-lg">
             <SelectValue placeholder="Priority" />
           </SelectTrigger>
           <SelectContent className="bg-[#1e1e22] border-[#27272a]">

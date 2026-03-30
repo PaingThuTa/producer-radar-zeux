@@ -47,7 +47,7 @@ export default function BulkActionBar({ selectedCount, onClearSelection, onBulkU
         {/* Bulk status */}
         <div className="flex items-center gap-1">
           <Select value={bulkStatus} onValueChange={setBulkStatus}>
-            <SelectTrigger className="h-7 bg-[#18181b] border-[#2a2a2d] text-[#a1a1aa] text-xs w-[140px] hover:border-[#3f3f46]">
+            <SelectTrigger className="h-7 bg-[#18181b] border-[#2a2a2d] text-[#a1a1aa] text-xs w-full sm:w-[140px] hover:border-[#3f3f46]">
               <SelectValue placeholder="Set status..." />
             </SelectTrigger>
             <SelectContent className="bg-[#18181b] border-[#27272a]">
@@ -65,7 +65,7 @@ export default function BulkActionBar({ selectedCount, onClearSelection, onBulkU
         {/* Bulk style */}
         <div className="flex items-center gap-1">
           <Select value={bulkStyle} onValueChange={setBulkStyle}>
-            <SelectTrigger className="h-7 bg-[#18181b] border-[#2a2a2d] text-[#a1a1aa] text-xs w-[130px] hover:border-[#3f3f46]">
+            <SelectTrigger className="h-7 bg-[#18181b] border-[#2a2a2d] text-[#a1a1aa] text-xs w-full sm:w-[130px] hover:border-[#3f3f46]">
               <SelectValue placeholder="Set style..." />
             </SelectTrigger>
             <SelectContent className="bg-[#18181b] border-[#27272a]">
