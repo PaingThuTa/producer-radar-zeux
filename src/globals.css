@@ -49,3 +49,12 @@ textarea::placeholder {
   color: #71717a !important;
   opacity: 1;
 }
+
+/* Hide scrollbar utility for horizontal scroll containers */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

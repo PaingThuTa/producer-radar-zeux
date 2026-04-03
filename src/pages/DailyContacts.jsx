@@ -46,7 +46,7 @@ function formatFollowUpDate(dateStr) {
 
 function DateChip({ dateStr }) {
   if (!dateStr) return (
-    <span className="text-[10px] px-2 py-0.5 rounded-full border bg-red-500/10 text-red-400 border-red-500/20 whitespace-nowrap">
+    <span className="text-xs px-2 py-0.5 rounded-full border bg-red-500/10 text-red-400 border-red-500/20 whitespace-nowrap">
       No date
     </span>
   );
@@ -54,19 +54,19 @@ function DateChip({ dateStr }) {
   if (dateStr < todayStr) {
     const diff = Math.round((new Date(todayStr) - new Date(dateStr)) / 86400000);
     return (
-      <span className="text-[10px] px-2 py-0.5 rounded-full border bg-red-500/10 text-red-400 border-red-500/20 whitespace-nowrap">
+      <span className="text-xs px-2 py-0.5 rounded-full border bg-red-500/10 text-red-400 border-red-500/20 whitespace-nowrap">
         {diff}d overdue
       </span>
     );
   }
   if (dateStr === todayStr) return (
-    <span className="text-[10px] px-2 py-0.5 rounded-full border bg-amber-500/10 text-amber-400 border-amber-500/20 whitespace-nowrap">
+    <span className="text-xs px-2 py-0.5 rounded-full border bg-amber-500/10 text-amber-400 border-amber-500/20 whitespace-nowrap">
       Today
     </span>
   );
   const diff = Math.round((new Date(dateStr) - new Date(todayStr)) / 86400000);
   return (
-    <span className="text-[10px] px-2 py-0.5 rounded-full border bg-zinc-700/50 text-zinc-400 border-zinc-700 whitespace-nowrap">
+    <span className="text-xs px-2 py-0.5 rounded-full border bg-zinc-700/50 text-zinc-400 border-zinc-700 whitespace-nowrap">
       in {diff}d
     </span>
   );
@@ -74,7 +74,7 @@ function DateChip({ dateStr }) {
 
 function GroupHeader({ label, color, count, textColor, badgeClass }) {
   return (
-    <div className={`flex items-center gap-2 px-5 py-2 border-l-2 ${color} bg-white/[0.01]`}>
+    <div className={`flex items-center gap-2 px-3 sm:px-5 py-2 border-l-2 ${color} bg-white/[0.01]`}>
       <span className={`text-xs font-semibold uppercase tracking-wide ${textColor}`}>{label}</span>
       <span className={`text-[10px] px-1.5 py-0.5 rounded-full border ${badgeClass}`}>{count}</span>
     </div>
@@ -210,7 +210,7 @@ export default function DailyContacts() {
   const dueCount = overdueItems.length + todayItems.length;
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-6 sm:space-y-8 md:space-y-10">
       <div>
         <h1 className="text-2xl font-bold text-white">Daily Outreach</h1>
         <p className="text-[#71717a] text-sm mt-1">DMs del día y follow ups pendientes</p>
@@ -218,23 +218,29 @@ export default function DailyContacts() {
 
       {/* ── Follow Ups Pendientes ── */}
       <section>
-        <div className="flex items-center gap-2 mb-3">
-          <RefreshCw className="w-5 h-5 text-amber-400" />
-          <h2 className="text-lg font-semibold text-white">Follow Ups Pendientes</h2>
-          {dueCount > 0 && (
-            <span className="text-xs bg-red-500/10 text-red-400 border border-red-500/20 px-2 py-0.5 rounded-full">
-              {dueCount} due
-            </span>
-          )}
-          {upcomingItems.length > 0 && (
-            <span className="text-xs bg-zinc-700/50 text-zinc-400 border border-zinc-700 px-2 py-0.5 rounded-full">
-              {upcomingItems.length} upcoming
-            </span>
+        <div className="mb-3">
+          <div className="flex items-center gap-2">
+            <RefreshCw className="w-5 h-5 text-amber-400" />
+            <h2 className="text-lg font-semibold text-white">Follow Ups Pendientes</h2>
+          </div>
+          {(dueCount > 0 || upcomingItems.length > 0) && (
+            <div className="flex items-center gap-2 mt-2 sm:mt-0 sm:inline-flex sm:ml-2">
+              {dueCount > 0 && (
+                <span className="text-xs bg-red-500/10 text-red-400 border border-red-500/20 px-2 py-0.5 rounded-full">
+                  {dueCount} due
+                </span>
+              )}
+              {upcomingItems.length > 0 && (
+                <span className="text-xs bg-zinc-700/50 text-zinc-400 border border-zinc-700 px-2 py-0.5 rounded-full">
+                  {upcomingItems.length} upcoming
+                </span>
+              )}
+            </div>
           )}
         </div>
 
         {/* Filter tabs */}
-        <div className="flex items-center gap-1.5 mb-4">
+        <div className="flex items-center gap-1.5 mb-4 overflow-x-auto -mx-3 px-3 sm:mx-0 sm:px-0 sm:overflow-visible scrollbar-hide">
           {[
             { id: 'all', label: 'All', count: overdueItems.length + todayItems.length + upcomingItems.length },
             { id: 'overdue', label: 'Overdue', count: overdueItems.length },
@@ -244,7 +250,7 @@ export default function DailyContacts() {
             <button
               key={opt.id}
               onClick={() => setFilter(opt.id)}
-              className={`text-xs px-3 py-1 rounded-full border transition-colors flex items-center gap-1.5 ${
+              className={`text-xs px-3 py-1 rounded-full border transition-colors flex items-center gap-1.5 whitespace-nowrap ${
                 filter === opt.id
                   ? 'bg-amber-500/15 text-amber-400 border-amber-500/30'
                   : 'bg-transparent text-[#71717a] border-[#27272a] hover:text-white hover:border-[#3f3f46]'
@@ -266,10 +272,10 @@ export default function DailyContacts() {
           </div>
         ) : (() => {
           const renderRow = (p) => (
-            <div key={p.id} className="flex items-center gap-4 px-5 py-3 hover:bg-white/[0.02]">
-              {/* Left: name + instagram + badges */}
+            <div key={p.id} className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 px-3 sm:px-5 py-4 sm:py-3 hover:bg-white/[0.02]">
+              {/* Row 1: name + instagram + badges (mobile & desktop) */}
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-white truncate">{p.name}</p>
+                <p className="text-sm font-semibold text-white sm:truncate">{p.name}</p>
                 {p.instagram && (
                   <a href={`https://instagram.com/${p.instagram.replace('@', '')}`}
                     target="_blank" rel="noopener noreferrer"
@@ -293,23 +299,23 @@ export default function DailyContacts() {
                   )}
                 </div>
               </div>
-              {/* Middle: date chip */}
-              <div className="flex-shrink-0">
-                <DateChip dateStr={p.next_follow_up} />
-              </div>
-              {/* Right: priority + actions */}
-              <div className="flex items-center gap-2 flex-shrink-0">
+
+              {/* Row 2 (mobile) / Inline (desktop): date + priority + actions */}
+              <div className="flex items-center gap-3 sm:gap-2 flex-shrink-0">
+                <div className="flex-shrink-0">
+                  <DateChip dateStr={p.next_follow_up} />
+                </div>
                 <PriorityBar score={p.priority || 0} max={p._type === 'yt' ? 8 : 10} />
                 <Button size="sm" variant="ghost"
                   onClick={() => setEditProducer(p)}
-                  className="text-[#71717a] hover:text-white hover:bg-[#27272a] p-2">
+                  className="text-[#71717a] hover:text-white hover:bg-[#27272a] p-2 h-11 sm:h-auto">
                   <Pencil className="w-3.5 h-3.5" />
                 </Button>
                 <Button size="sm" variant="ghost"
                   onClick={() => p._type === 'yt'
                     ? advanceFollowUpYT.mutate({ id: p.id, currentStatus: p.status, re_dms: p.re_dms })
                     : advanceFollowUpPL.mutate({ id: p.id, currentStatus: p.status, re_dms: p.re_dms })}
-                  className="text-amber-400 hover:text-amber-300 hover:bg-amber-500/10 whitespace-nowrap">
+                  className="text-amber-400 hover:text-amber-300 hover:bg-amber-500/10 whitespace-nowrap h-11 sm:h-auto">
                   <Check className="w-4 h-4 mr-1" /> Hecho
                 </Button>
               </div>
@@ -350,12 +356,16 @@ export default function DailyContacts() {
 
       {/* ── Daily DMs ── */}
       <section>
-        <div className="flex items-center gap-2 mb-4">
-          <MessageCircle className="w-5 h-5 text-[#3b82f6]" />
-          <h2 className="text-lg font-semibold text-white">Daily DMs</h2>
-          <span className="text-xs bg-[#2563eb]/10 text-[#3b82f6] border border-[#2563eb]/20 px-2 py-0.5 rounded-full">
-            Top {dailyDMs.length}
-          </span>
+        <div className="mb-4">
+          <div className="flex items-center gap-2">
+            <MessageCircle className="w-5 h-5 text-[#3b82f6]" />
+            <h2 className="text-lg font-semibold text-white">Daily DMs</h2>
+          </div>
+          <div className="flex items-center gap-2 mt-2 sm:mt-0 sm:inline-flex sm:ml-2">
+            <span className="text-xs bg-[#2563eb]/10 text-[#3b82f6] border border-[#2563eb]/20 px-2 py-0.5 rounded-full">
+              Top {dailyDMs.length}
+            </span>
+          </div>
         </div>
 
         {dailyDMs.length === 0 ? (
@@ -367,50 +377,58 @@ export default function DailyContacts() {
             {dailyDMs.map((p, i) => (
               <motion.div key={p.id}
                 initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.04 }}
-                className="bg-[#18181b] border border-[#27272a] rounded-xl p-4 flex items-center gap-4 hover:border-[#3f3f46] transition-colors">
-                <div className="w-8 h-8 rounded-lg bg-[#2563eb]/10 flex items-center justify-center text-sm font-bold text-[#3b82f6] flex-shrink-0">
-                  {i + 1}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <p className="text-sm font-semibold text-white truncate">{p.name}</p>
-                    {p.style && <span className={`text-xs ${styleColors[p.style?.split(',')[0]?.trim()] || 'text-zinc-400'}`}>{p.style.split(',')[0].trim()}</span>}
-                    {p.re_dms === 'no' && (
-                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-red-500/10 text-red-400 border border-red-500/20">
-                        Re-DMs: NO → FU4
+                className="bg-[#18181b] border border-[#27272a] rounded-xl p-3 sm:p-4 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 hover:border-[#3f3f46] transition-colors">
+
+                {/* Row 1 (mobile) / Inline (desktop): Ranking + Content */}
+                <div className="flex items-start gap-3 sm:gap-4 flex-1 min-w-0">
+                  <div className="w-8 h-8 rounded-lg bg-[#2563eb]/10 flex items-center justify-center text-sm font-bold text-[#3b82f6] flex-shrink-0">
+                    {i + 1}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className="text-sm font-semibold text-white sm:truncate">{p.name}</p>
+                      {p.style && <span className={`text-xs ${styleColors[p.style?.split(',')[0]?.trim()] || 'text-zinc-400'}`}>{p.style.split(',')[0].trim()}</span>}
+                      {p.re_dms === 'no' && (
+                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-red-500/10 text-red-400 border border-red-500/20">
+                          Re-DMs: NO → FU4
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-3 mt-1 flex-wrap">
+                      {p.instagram && (
+                        <a href={`https://instagram.com/${p.instagram.replace('@','')}`} target="_blank" rel="noopener noreferrer"
+                          className="flex items-center gap-1 text-xs text-[#a1a1aa] hover:text-[#e1306c] transition-colors">
+                          <Instagram className="w-3 h-3" />{p.instagram}
+                        </a>
+                      )}
+                      {p.email && (
+                        <a href={`mailto:${p.email}`} className="flex items-center gap-1 text-xs text-[#71717a] hover:text-[#3b82f6] transition-colors">
+                          <Mail className="w-3 h-3" />{p.email}
+                        </a>
+                      )}
+                      <span className="text-xs text-[#3f3f46]">
+                        {p.followers_ig ? `${p.followers_ig.toLocaleString()} followers` : ''}
                       </span>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-3 mt-1 flex-wrap">
-                    {p.instagram && (
-                      <a href={`https://instagram.com/${p.instagram.replace('@','')}`} target="_blank" rel="noopener noreferrer"
-                        className="flex items-center gap-1 text-xs text-[#a1a1aa] hover:text-[#e1306c] transition-colors">
-                        <Instagram className="w-3 h-3" />{p.instagram}
-                      </a>
-                    )}
-                    {p.email && (
-                      <a href={`mailto:${p.email}`} className="flex items-center gap-1 text-xs text-[#71717a] hover:text-[#3b82f6] transition-colors">
-                        <Mail className="w-3 h-3" />{p.email}
-                      </a>
-                    )}
-                    <span className="text-xs text-[#3f3f46]">
-                      {p.followers_ig ? `${p.followers_ig.toLocaleString()} followers` : ''}
-                    </span>
+                    </div>
                   </div>
                 </div>
-                <PriorityBar score={p.priority || 0} max={p._type === 'yt' ? 8 : 10} />
-                <Button size="sm" variant="ghost"
-                  onClick={() => setEditProducer(p)}
-                  className="text-[#71717a] hover:text-white hover:bg-[#27272a] p-2">
-                  <Pencil className="w-3.5 h-3.5" />
-                </Button>
-                <Button size="sm" variant="ghost"
-                  onClick={() => p._type === 'yt'
-                    ? markContactedYT.mutate({ id: p.id, re_dms: p.re_dms })
-                    : markContactedPL.mutate({ id: p.id, re_dms: p.re_dms })}
-                  className="text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/10 whitespace-nowrap">
-                  <Check className="w-4 h-4 mr-1" /> Enviado
-                </Button>
+
+                {/* Row 2 (mobile) / Inline (desktop): Priority + Actions */}
+                <div className="flex items-center gap-3 sm:gap-2 flex-shrink-0 sm:ml-auto">
+                  <PriorityBar score={p.priority || 0} max={p._type === 'yt' ? 8 : 10} />
+                  <Button size="sm" variant="ghost"
+                    onClick={() => setEditProducer(p)}
+                    className="text-[#71717a] hover:text-white hover:bg-[#27272a] p-2 h-11 sm:h-auto">
+                    <Pencil className="w-3.5 h-3.5" />
+                  </Button>
+                  <Button size="sm" variant="ghost"
+                    onClick={() => p._type === 'yt'
+                      ? markContactedYT.mutate({ id: p.id, re_dms: p.re_dms })
+                      : markContactedPL.mutate({ id: p.id, re_dms: p.re_dms })}
+                    className="text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/10 whitespace-nowrap h-11 sm:h-auto">
+                    <Check className="w-4 h-4 mr-1" /> Enviado
+                  </Button>
+                </div>
               </motion.div>
             ))}
           </div>
