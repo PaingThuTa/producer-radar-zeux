@@ -147,10 +147,12 @@ export default function DailyContacts() {
   // Advance follow up: siguiente paso, si re_dms=no y ya está en follow up 4+ → archivar
   function getNextFollowUpStatus(currentStatus, re_dms) {
     if (currentStatus === 'contactado') return 'follow up 1';
+    if (re_dms === 'no' && (currentStatus === 'follow up 4' || currentStatus === 'follow up 5')) {
+      return 'archivado';
+    }
     const followUps = ['follow up 1','follow up 2','follow up 3','follow up 4','follow up 5'];
     const idx = followUps.indexOf(currentStatus);
-    const nextStatus = idx < followUps.length - 1 ? followUps[idx + 1] : 'archivado';
-    return (re_dms === 'no' && idx >= 3) ? 'archivado' : nextStatus;
+    return idx < followUps.length - 1 ? followUps[idx + 1] : 'archivado';
   }
 
   const advanceFollowUpYT = useMutation({

@@ -23,7 +23,8 @@ export default async function handler(req, res) {
 
   if (req.method === 'POST') {
     try {
-      const producer = await prisma.placementProducer.create({ data: req.body });
+      const { re_dms = null, ...rest } = req.body;
+      const producer = await prisma.placementProducer.create({ data: { ...rest, re_dms } });
       return res.status(201).json(producer);
     } catch (e) {
       return res.status(500).json({ error: e.message });
