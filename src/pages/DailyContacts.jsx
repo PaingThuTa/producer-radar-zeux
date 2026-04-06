@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api-client';
-import { MessageCircle, RefreshCw, Check, Instagram, Mail, Pencil } from 'lucide-react';
+import { MessageCircle, RefreshCw, Check, Instagram, Mail, Pencil, Shuffle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 import PriorityBar from '@/components/shared/PriorityBar';
@@ -23,13 +23,11 @@ function randomDays(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-function getFollowUpDelay(toStatus) {
-  if (toStatus === 'follow up 1') return 1;
-  if (toStatus === 'follow up 2') return randomDays(2, 4);
-  if (toStatus === 'follow up 3') return randomDays(5, 10);
-  if (toStatus === 'follow up 4') return randomDays(5, 10);
-  if (toStatus === 'follow up 5') return randomDays(5, 10);
-  return null;
+function getRandomOffset(currentStatus) {
+  if (currentStatus === 'contactado' || currentStatus === 'follow up 1') return randomDays(1, 5);
+  if (currentStatus === 'follow up 2') return randomDays(6, 10);
+  if (currentStatus === 'follow up 3' || currentStatus === 'follow up 4') return randomDays(10, 30);
+  return 7;
 }
 
 function formatFollowUpDate(dateStr) {
@@ -85,6 +83,16 @@ export default function DailyContacts() {
   const queryClient = useQueryClient();
   const [editProducer, setEditProducer] = useState(null);
   const [filter, setFilter] = useState('all');
+  const [selectedFollowUps, setSelectedFollowUps] = useState(new Set());
+
+  function toggleFollowUpSelection(key) {
+    setSelectedFollowUps(prev => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  }
 
   const { data: ytProducers = [] } = useQuery({
     queryKey: ['youtube-producers'],
@@ -158,7 +166,7 @@ export default function DailyContacts() {
   const advanceFollowUpYT = useMutation({
     mutationFn: ({ id, currentStatus, re_dms }) => {
       const finalStatus = getNextFollowUpStatus(currentStatus, re_dms);
-      const delay = getFollowUpDelay(finalStatus);
+      const delay = finalStatus === 'archivado' ? null : getRandomOffset(currentStatus);
       return api.entities.YouTubeProducer.update(id, {
         status: finalStatus,
         last_action: new Date().toISOString().split('T')[0],
@@ -171,7 +179,7 @@ export default function DailyContacts() {
   const advanceFollowUpPL = useMutation({
     mutationFn: ({ id, currentStatus, re_dms }) => {
       const finalStatus = getNextFollowUpStatus(currentStatus, re_dms);
-      const delay = getFollowUpDelay(finalStatus);
+      const delay = finalStatus === 'archivado' ? null : getRandomOffset(currentStatus);
       return api.entities.PlacementProducer.update(id, {
         status: finalStatus,
         last_action: new Date().toISOString().split('T')[0],
@@ -180,6 +188,21 @@ export default function DailyContacts() {
     },
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['placement-producers'] }); toast.success('Follow up avanzado'); },
   });
+
+  async function handleRandomDate(clickedProducer, allItems) {
+    const clickedKey = `${clickedProducer._type}-${clickedProducer.id}`;
+    const targets = selectedFollowUps.size > 0 && selectedFollowUps.has(clickedKey)
+      ? allItems.filter(p => selectedFollowUps.has(`${p._type}-${p.id}`))
+      : [clickedProducer];
+    await Promise.all(targets.map(p => {
+      const newDate = addDays(getRandomOffset(p.status));
+      if (p._type === 'yt') return api.entities.YouTubeProducer.update(p.id, { next_follow_up: newDate });
+      return api.entities.PlacementProducer.update(p.id, { next_follow_up: newDate });
+    }));
+    queryClient.invalidateQueries({ queryKey: ['youtube-producers'] });
+    queryClient.invalidateQueries({ queryKey: ['placement-producers'] });
+    toast.success(targets.length > 1 ? `${targets.length} productores reprogramados` : 'Fecha actualizada');
+  }
 
   const today = new Date(); today.setHours(0,0,0,0);
 
@@ -273,8 +296,19 @@ export default function DailyContacts() {
             No follow ups pendientes
           </div>
         ) : (() => {
-          const renderRow = (p) => (
-            <div key={p.id} className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 px-3 sm:px-5 py-4 sm:py-3 hover:bg-white/[0.02]">
+          const allItems = [...overdueItems, ...todayItems, ...upcomingItems];
+          const renderRow = (p) => {
+            const rowKey = `${p._type}-${p.id}`;
+            const isSelected = selectedFollowUps.has(rowKey);
+            return (
+            <div key={p.id} className={`flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 px-3 sm:px-5 py-4 sm:py-3 hover:bg-white/[0.02] ${isSelected ? 'bg-amber-500/5' : ''}`}>
+              {/* Checkbox */}
+              <input
+                type="checkbox"
+                checked={isSelected}
+                onChange={() => toggleFollowUpSelection(rowKey)}
+                className="w-4 h-4 flex-shrink-0 accent-amber-400 cursor-pointer mt-0.5 sm:mt-0"
+              />
               {/* Row 1: name + instagram + badges (mobile & desktop) */}
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-white sm:truncate">{p.name}</p>
@@ -314,6 +348,11 @@ export default function DailyContacts() {
                   <Pencil className="w-3.5 h-3.5" />
                 </Button>
                 <Button size="sm" variant="ghost"
+                  onClick={() => handleRandomDate(p, allItems)}
+                  className="text-zinc-400 hover:text-zinc-200 hover:bg-zinc-700/50 whitespace-nowrap h-11 sm:h-auto">
+                  <Shuffle className="w-3.5 h-3.5 mr-1" /> Random Date
+                </Button>
+                <Button size="sm" variant="ghost"
                   onClick={() => p._type === 'yt'
                     ? advanceFollowUpYT.mutate({ id: p.id, currentStatus: p.status, re_dms: p.re_dms })
                     : advanceFollowUpPL.mutate({ id: p.id, currentStatus: p.status, re_dms: p.re_dms })}
@@ -322,7 +361,8 @@ export default function DailyContacts() {
                 </Button>
               </div>
             </div>
-          );
+          );};
+
 
           const showOverdue = filter === 'all' || filter === 'overdue';
           const showToday = filter === 'all' || filter === 'today';
