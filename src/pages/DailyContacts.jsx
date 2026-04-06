@@ -272,7 +272,7 @@ export default function DailyContacts() {
         </div>
 
         {/* Filter tabs */}
-        <div className="flex items-center gap-1.5 mb-4 overflow-x-auto -mx-3 px-3 sm:mx-0 sm:px-0 sm:overflow-visible scrollbar-hide">
+        <div className="flex flex-wrap sm:flex-nowrap items-center gap-1.5 mb-4 -mx-3 px-3 sm:mx-0 sm:px-0 sm:overflow-visible">
           {[
             { id: 'all', label: 'All', count: overdueItems.length + todayItems.length + upcomingItems.length },
             { id: 'overdue', label: 'Overdue', count: overdueItems.length },
@@ -308,7 +308,7 @@ export default function DailyContacts() {
             const rowKey = `${p._type}-${p.id}`;
             const isSelected = selectedFollowUps.has(rowKey);
             return (
-            <div key={p.id} className={`flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 px-3 sm:px-5 py-4 sm:py-3 hover:bg-white/[0.02] ${isSelected ? 'bg-amber-500/5' : ''}`}>
+            <div key={p.id} className={`flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 px-3 sm:px-5 py-5 sm:py-3 w-full hover:bg-white/[0.02] ${isSelected ? 'bg-amber-500/5' : ''}`}>
               {/* Checkbox */}
               <input
                 type="checkbox"
@@ -322,7 +322,7 @@ export default function DailyContacts() {
                 {p.instagram && (
                   <a href={`https://instagram.com/${p.instagram.replace('@', '')}`}
                     target="_blank" rel="noopener noreferrer"
-                    className="flex items-center gap-1 text-xs text-[#a1a1aa] hover:text-[#e1306c] transition-colors mt-0.5">
+                    className="flex items-center gap-1 text-xs text-[#a1a1aa] hover:text-[#e1306c] transition-colors mt-0.5 max-w-[200px] truncate">
                     <Instagram className="w-3 h-3" />{p.instagram.replace('@', '')}
                   </a>
                 )}
@@ -344,28 +344,30 @@ export default function DailyContacts() {
               </div>
 
               {/* Row 2 (mobile) / Inline (desktop): date + priority + actions */}
-              <div className="flex items-center gap-3 sm:gap-2 flex-shrink-0">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-2 flex-shrink-0 w-full sm:w-auto">
                 <div className="flex-shrink-0">
                   <DateChip dateStr={p.next_follow_up} />
                 </div>
                 <PriorityBar score={p.priority || 0} max={p._type === 'yt' ? 8 : 10} />
-                <Button size="sm" variant="ghost"
-                  onClick={() => setEditProducer(p)}
-                  className="text-[#71717a] hover:text-white hover:bg-[#27272a] p-2 h-11 sm:h-auto">
-                  <Pencil className="w-3.5 h-3.5" />
-                </Button>
-                <Button size="sm" variant="ghost"
-                  onClick={() => handleRandomDate(p, allItems)}
-                  className="text-zinc-400 hover:text-zinc-200 hover:bg-zinc-700/50 whitespace-nowrap h-11 sm:h-auto">
-                  <Shuffle className="w-3.5 h-3.5 mr-1" /> Random Date
-                </Button>
-                <Button size="sm" variant="ghost"
-                  onClick={() => p._type === 'yt'
-                    ? advanceFollowUpYT.mutate({ id: p.id, currentStatus: p.status, re_dms: p.re_dms })
-                    : advanceFollowUpPL.mutate({ id: p.id, currentStatus: p.status, re_dms: p.re_dms })}
-                  className="text-amber-400 hover:text-amber-300 hover:bg-amber-500/10 whitespace-nowrap h-11 sm:h-auto">
-                  <Check className="w-4 h-4 mr-1" /> Hecho
-                </Button>
+                <div className="flex items-center gap-2 flex-wrap w-full sm:w-auto">
+                  <Button size="sm" variant="ghost"
+                    onClick={() => setEditProducer(p)}
+                    className="text-[#71717a] hover:text-white hover:bg-[#27272a] p-2 h-11 sm:h-auto">
+                    <Pencil className="w-3.5 h-3.5" />
+                  </Button>
+                  <Button size="sm" variant="ghost"
+                    onClick={() => handleRandomDate(p, allItems)}
+                    className="text-zinc-400 hover:text-zinc-200 hover:bg-zinc-700/50 whitespace-nowrap h-11 sm:h-auto">
+                    <Shuffle className="w-3.5 h-3.5 mr-1" /> Random Date
+                  </Button>
+                  <Button size="sm" variant="ghost"
+                    onClick={() => p._type === 'yt'
+                      ? advanceFollowUpYT.mutate({ id: p.id, currentStatus: p.status, re_dms: p.re_dms })
+                      : advanceFollowUpPL.mutate({ id: p.id, currentStatus: p.status, re_dms: p.re_dms })}
+                    className="text-amber-400 hover:text-amber-300 hover:bg-amber-500/10 whitespace-nowrap h-11 sm:h-auto">
+                    <Check className="w-4 h-4 mr-1" /> Hecho
+                  </Button>
+                </div>
               </div>
             </div>
           );};
