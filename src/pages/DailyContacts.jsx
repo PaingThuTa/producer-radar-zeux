@@ -19,6 +19,13 @@ function addDays(n) {
   const d = new Date(); d.setDate(d.getDate() + n); return d.toISOString().split('T')[0];
 }
 
+function toDateStr(value) {
+  if (!value) return null;
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return null;
+  return d.toISOString().slice(0, 10);
+}
+
 function randomDays(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
@@ -217,7 +224,7 @@ export default function DailyContacts() {
     ...plProducers.filter(p => p.status === 'por contactar').map(p => ({ ...p, _type: 'pl' })),
   ].sort((a, b) => (b.priority || 0) - (a.priority || 0)).slice(0, 10);
 
-  const todayStr = new Date().toLocaleDateString('en-CA');
+  const todayStr = toDateStr(new Date());
 
   // All producers in follow-up pipeline, sorted oldest first
   const followUps = [
@@ -229,9 +236,9 @@ export default function DailyContacts() {
     return da - db;
   });
 
-  const overdueItems = followUps.filter(p => !p.next_follow_up || p.next_follow_up.slice(0, 10) <= todayStr);
-  const todayItems = [];
-  const upcomingItems = followUps.filter(p => p.next_follow_up && p.next_follow_up.slice(0, 10) > todayStr);
+  const overdueItems = followUps.filter(p => !p.next_follow_up || toDateStr(p.next_follow_up) < todayStr);
+  const todayItems = followUps.filter(p => p.next_follow_up && toDateStr(p.next_follow_up) === todayStr);
+  const upcomingItems = followUps.filter(p => p.next_follow_up && toDateStr(p.next_follow_up) > todayStr);
   const dueCount = overdueItems.length + todayItems.length;
 
   return (
