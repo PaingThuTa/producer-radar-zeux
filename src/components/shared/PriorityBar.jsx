@@ -8,7 +8,7 @@ export default function PriorityBar({ score = 0, max = 10 }) {
   return (
     <div className="flex items-center gap-2">
       <div className="flex-1 h-1.5 bg-[#27272a] rounded-full overflow-hidden max-w-[60px]">
-        <div className={cn("h-full rounded-full transition-all", color)} 
+        <div className={cn("h-full rounded-full transition-[width] duration-[var(--dur-fast)] ease-[var(--ease-out)]", color)}
           style={{ width: `${percentage}%` }} />
       </div>
       <span className="text-xs text-[#a1a1aa] font-medium tabular-nums">{score}</span>

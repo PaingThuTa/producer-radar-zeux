@@ -5,10 +5,10 @@ import { motion } from 'framer-motion';
 export default function StatCard({ title, value, icon: Icon, trend, trendLabel, accentColor = '#2563eb' }) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-      className="bg-[#18181b] border border-[#27272a] rounded-xl p-5 relative overflow-hidden group hover:border-[#3f3f46] transition-colors"
+      initial={{ opacity: 0, scale: 0.98 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.22, ease: [0.23, 1, 0.32, 1] }}
+      className="bg-[#18181b] border border-[#27272a] rounded-xl p-5 relative overflow-hidden group hover:border-[#3f3f46] transition-[transform,opacity,border-color] duration-[var(--dur-base)] ease-[var(--ease-out)] hover:scale-[1.01] active:scale-[0.99]"
     >
       <div className="absolute top-0 right-0 w-24 h-24 rounded-full opacity-5 -translate-y-6 translate-x-6"
         style={{ background: accentColor }} />

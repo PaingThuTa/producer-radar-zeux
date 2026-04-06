@@ -75,9 +75,9 @@ export default function Dashboard() {
       {/* Follow-up banner */}
       {followUps.length > 0 && (
         <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.35, ease: 'easeOut' }}
+          initial={{ opacity: 0, scale: 0.98 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.22, ease: [0.23, 1, 0.32, 1] }}
           className="flex items-center justify-between px-5 py-4 bg-amber-500/5 border border-amber-500/20 border-l-4 border-l-amber-500 rounded-xl"
         >
           <div className="flex items-center gap-4">
@@ -115,9 +115,9 @@ export default function Dashboard() {
 
       {/* Network Overview */}
       <motion.div
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.05 }}
+        initial={{ opacity: 0, scale: 0.98 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ delay: 0.05, duration: 0.22, ease: [0.23, 1, 0.32, 1] }}
         className="bg-[#18181b] border border-[#27272a] rounded-xl p-5"
       >
         <h2 className="text-sm font-semibold text-white mb-4">Network Overview</h2>
@@ -144,9 +144,9 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Top Priority Producers */}
         <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
+          initial={{ opacity: 0, scale: 0.98 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.1, duration: 0.22, ease: [0.23, 1, 0.32, 1] }}
           className="bg-[#18181b] border border-[#27272a] rounded-xl"
         >
           <div className="flex items-center justify-between p-5 border-b border-[#27272a]">
@@ -162,7 +162,7 @@ export default function Dashboard() {
             {topProducers.map((p, i) => {
               const pType = ytProducers.find(y => y.id === p.id) ? 'yt' : 'pl';
               return (
-                <div key={p.id} className="flex items-center justify-between px-5 py-3 hover:bg-white/[0.02] transition-colors group">
+                <div key={p.id} className="flex items-center justify-between px-5 py-3 hover:bg-white/[0.02] transition-[transform,opacity] duration-[var(--dur-base)] ease-[var(--ease-out)] group hover:-translate-y-[1px] active:translate-y-0">
                   <div className="flex items-center gap-3">
                     <span className="text-xs text-[#3f3f46] w-4 tabular-nums">{i + 1}</span>
                     <div>
@@ -174,7 +174,7 @@ export default function Dashboard() {
                     <PriorityBar score={p.priority || 0} max={10} />
                     <StatusBadge status={p.status || 'por contactar'} />
                     <button onClick={() => setEditProducer({ ...p, _type: pType })}
-                      className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-lg hover:bg-[#27272a] text-[#71717a] hover:text-white">
+                      className="opacity-0 group-hover:opacity-100 transition-[transform,opacity] duration-[var(--dur-fast)] ease-[var(--ease-out)] p-1 rounded-lg hover:bg-[#27272a] text-[#71717a] hover:text-white scale-[0.96] group-hover:scale-[1]">
                       <Pencil className="w-3.5 h-3.5" />
                     </button>
                   </div>
@@ -186,9 +186,9 @@ export default function Dashboard() {
 
         {/* Recent Discovery Logs */}
         <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
+          initial={{ opacity: 0, scale: 0.98 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.2, duration: 0.22, ease: [0.23, 1, 0.32, 1] }}
           className="bg-[#18181b] border border-[#27272a] rounded-xl"
         >
           <div className="flex items-center justify-between p-5 border-b border-[#27272a]">
@@ -223,9 +223,9 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Daily DMs */}
         <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.25 }}
+          initial={{ opacity: 0, scale: 0.98 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.25, duration: 0.22, ease: [0.23, 1, 0.32, 1] }}
           className="bg-[#18181b] border border-[#27272a] rounded-xl"
         >
           <div className="flex items-center justify-between p-5 border-b border-[#27272a]">
@@ -243,7 +243,7 @@ export default function Dashboard() {
               <div className="p-8 text-center text-[#3f3f46] text-sm">No producers to DM today</div>
             )}
             {dailyDMs.map(p => (
-              <div key={p.id} className="flex items-center justify-between px-5 py-3 hover:bg-white/[0.02]">
+              <div key={p.id} className="flex items-center justify-between px-5 py-3 hover:bg-white/[0.02] transition-[transform,opacity] duration-[var(--dur-base)] ease-[var(--ease-out)] hover:-translate-y-[1px] active:translate-y-0">
                 <div>
                   <p className="text-sm font-medium text-white">{p.name}</p>
                   {p.instagram && (
@@ -261,9 +261,9 @@ export default function Dashboard() {
 
         {/* Daily Follow Ups */}
         <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
+          initial={{ opacity: 0, scale: 0.98 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.3, duration: 0.22, ease: [0.23, 1, 0.32, 1] }}
           className="bg-[#18181b] border border-[#27272a] rounded-xl"
         >
           <div className="flex items-center justify-between p-5 border-b border-[#27272a]">
@@ -283,7 +283,7 @@ export default function Dashboard() {
             {dailyFollowUps.map(p => {
               const pType = ytProducers.find(y => y.id === p.id) ? 'yt' : 'pl';
               return (
-                <div key={p.id} className="flex items-center justify-between px-5 py-3 hover:bg-white/[0.02] group">
+                <div key={p.id} className="flex items-center justify-between px-5 py-3 hover:bg-white/[0.02] transition-[transform,opacity] duration-[var(--dur-base)] ease-[var(--ease-out)] group hover:-translate-y-[1px] active:translate-y-0">
                   <div>
                     <p className="text-sm font-medium text-white">{p.name}</p>
                     <p className="text-xs text-amber-400 mt-0.5">{p.status}</p>
@@ -291,7 +291,7 @@ export default function Dashboard() {
                   <div className="flex items-center gap-2">
                     <PriorityBar score={p.priority || 0} max={10} />
                     <button onClick={() => setEditProducer({ ...p, _type: pType })}
-                      className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-lg hover:bg-[#27272a] text-[#71717a] hover:text-white">
+                      className="opacity-0 group-hover:opacity-100 transition-[transform,opacity] duration-[var(--dur-fast)] ease-[var(--ease-out)] p-1 rounded-lg hover:bg-[#27272a] text-[#71717a] hover:text-white scale-[0.96] group-hover:scale-[1]">
                       <Pencil className="w-3.5 h-3.5" />
                     </button>
                   </div>
