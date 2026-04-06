@@ -308,13 +308,13 @@ export default function DailyContacts() {
             const rowKey = `${p._type}-${p.id}`;
             const isSelected = selectedFollowUps.has(rowKey);
             return (
-            <div key={p.id} className={`flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 px-3 sm:px-5 py-5 sm:py-3 w-full hover:bg-white/[0.02] ${isSelected ? 'bg-amber-500/5' : ''}`}>
+            <div key={p.id} className={`flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 px-3 sm:px-5 py-3 sm:py-3 w-full hover:bg-white/[0.02] ${isSelected ? 'bg-amber-500/5' : ''}`}>
               {/* Checkbox */}
               <input
                 type="checkbox"
                 checked={isSelected}
                 onChange={() => toggleFollowUpSelection(rowKey)}
-                className="w-4 h-4 flex-shrink-0 accent-amber-400 cursor-pointer mt-0.5 sm:mt-0"
+                className={`w-4 h-4 flex-shrink-0 rounded-sm cursor-pointer transition-opacity mt-0.5 sm:mt-0 ${isSelected ? 'accent-[#3b82f6] opacity-100' : 'accent-[#3f3f46] opacity-30 hover:opacity-70'}`}
               />
               {/* Row 1: name + instagram + badges (mobile & desktop) */}
               <div className="flex-1 min-w-0">
@@ -344,7 +344,7 @@ export default function DailyContacts() {
               </div>
 
               {/* Row 2 (mobile) / Inline (desktop): date + priority + actions */}
-              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-2 flex-shrink-0 w-full sm:w-auto">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-1 sm:gap-2 flex-shrink-0 w-full sm:w-auto">
                 <div className="flex-shrink-0">
                   <DateChip dateStr={p.next_follow_up} />
                 </div>
