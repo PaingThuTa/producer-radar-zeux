@@ -229,8 +229,8 @@ export default function DailyContacts() {
     return da - db;
   });
 
-  const overdueItems = followUps.filter(p => !p.next_follow_up || p.next_follow_up.slice(0, 10) < todayStr);
-  const todayItems = followUps.filter(p => p.next_follow_up && p.next_follow_up.slice(0, 10) === todayStr);
+  const overdueItems = followUps.filter(p => !p.next_follow_up || p.next_follow_up.slice(0, 10) <= todayStr);
+  const todayItems = [];
   const upcomingItems = followUps.filter(p => p.next_follow_up && p.next_follow_up.slice(0, 10) > todayStr);
   const dueCount = overdueItems.length + todayItems.length;
 
