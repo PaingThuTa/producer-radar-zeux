@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { Table, TableBody, TableHead, TableHeader } from '@/components/ui/table';
+import { Table, TableBody, TableHeader } from '@/components/ui/table';
 import StatusBadge from './StatusBadge';
 import { Instagram, Star, Youtube } from 'lucide-react';
 

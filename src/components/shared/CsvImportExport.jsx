@@ -2,7 +2,7 @@ import React, { useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Download, Upload, Loader2, X, Check, AlertTriangle, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence } from 'framer-motion';
 import { normalizeStatus } from '@/lib/normalizeStatus';
 
 // ─── CSV helpers ──────────────────────────────────────────────────────────────

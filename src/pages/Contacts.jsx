@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api-client';
-import { Star, Instagram, Youtube, Clock, Users, Zap, Heart, Send, LayoutGrid, Youtube as YTIcon } from 'lucide-react';
+import { Star, Instagram, Youtube, Clock, Users, Send, LayoutGrid } from 'lucide-react';
 import StatusBadge from '@/components/shared/StatusBadge';
 import PriorityBar from '@/components/shared/PriorityBar';
 import ProducerProfile from '@/components/shared/ProducerProfile';
