@@ -88,10 +88,19 @@ export default function ProducerTable({
     type: 'Type',
     last_action: 'Last Action',
     phone: 'Phone',
+    song: 'Song',
+    artist: 'Artist',
+    email: 'Email',
+    highlights_placements: 'Placements',
+    donde_enviar: 'Donde Enviar',
+    que_enviar: 'Qué Enviar',
+    re_dms: 'Re-DMs',
+    followers_ig: 'IG Followers',
+    notes: 'Notes',
   };
 
   // Columns hidden on mobile (below sm = 640px); name, instagram, status always visible
-  const mobileHidden = new Set(['youtube', 'subscribers', 'style', 'placements', 'priority', 'next_follow_up', 'last_action', 'type', 'phone']);
+  const mobileHidden = new Set(['youtube', 'subscribers', 'style', 'placements', 'priority', 'next_follow_up', 'last_action', 'type', 'phone', 'song', 'artist', 'email', 'highlights_placements', 'donde_enviar', 'que_enviar', 're_dms', 'followers_ig', 'notes']);
 
   return (
     <div className="bg-[#18181b] border border-[#27272a] rounded-xl overflow-hidden">
@@ -211,6 +220,50 @@ export default function ProducerTable({
                       )}
                       {col === 'phone' && (
                         <span className="text-sm text-[#a1a1aa]">{producer.phone || <span className="text-[#3f3f46]">—</span>}</span>
+                      )}
+                      {col === 'song' && (
+                        <span className="text-sm text-[#a1a1aa]">{producer.song || <span className="text-[#3f3f46]">—</span>}</span>
+                      )}
+                      {col === 'artist' && (
+                        <span className="text-sm text-[#a1a1aa]">{producer.artist || <span className="text-[#3f3f46]">—</span>}</span>
+                      )}
+                      {col === 'email' && (
+                        <span className="text-sm text-[#a1a1aa]">{producer.email || <span className="text-[#3f3f46]">—</span>}</span>
+                      )}
+                      {col === 'highlights_placements' && (
+                        placements.length > 0 ? (
+                          <div className="flex flex-wrap gap-1">
+                            {placements.map(a => <span key={a} className="px-1.5 py-0.5 bg-[#27272a] text-[#a1a1aa] rounded text-[10px]">{a}</span>)}
+                            {producer.highlights_placements?.split(',').length > 3 && (
+                              <span className="px-1.5 py-0.5 text-[#52525b] text-[10px]">+{producer.highlights_placements.split(',').length - 3}</span>
+                            )}
+                          </div>
+                        ) : <span className="text-[#3f3f46] text-sm">—</span>
+                      )}
+                      {col === 'donde_enviar' && (
+                        <span className="text-sm text-[#a1a1aa]">{producer.donde_enviar || <span className="text-[#3f3f46]">—</span>}</span>
+                      )}
+                      {col === 'que_enviar' && (
+                        <span className="text-sm text-[#a1a1aa]">{producer.que_enviar || <span className="text-[#3f3f46]">—</span>}</span>
+                      )}
+                      {col === 're_dms' && (() => {
+                        const v = producer.re_dms;
+                        if (!v) return <span className="text-[#3f3f46]">—</span>;
+                        const cls = v === 'yes'
+                          ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                          : 'bg-zinc-500/10 text-zinc-400 border-zinc-500/20';
+                        return <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium border ${cls}`}>{v}</span>;
+                      })()}
+                      {col === 'followers_ig' && (() => {
+                        const n = producer.followers_ig;
+                        if (!n) return <span className="text-[#3f3f46] text-sm">—</span>;
+                        const fmt = n >= 1_000_000 ? `${(n / 1_000_000).toFixed(1)}M`
+                          : n >= 1_000 ? `${(n / 1_000).toFixed(1)}K`
+                          : String(n);
+                        return <span className="text-sm text-[#a1a1aa] tabular-nums">{fmt}</span>;
+                      })()}
+                      {col === 'notes' && (
+                        <span className="text-sm text-[#a1a1aa] max-w-[200px] truncate block">{producer.notes || <span className="text-[#3f3f46]">—</span>}</span>
                       )}
                     </td>
                   ))}

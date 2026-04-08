@@ -39,26 +39,32 @@ export default function QuickEditModal({ producer, producerType, onClose, onSave
       ? api.entities.YouTubeProducer
       : api.entities.PlacementProducer;
 
-    const DATE_FIELDS = ['next_follow_up', 'last_action'];
-    const payload = Object.fromEntries(
-      Object.entries(form)
-        .filter(([key, val]) => {
-          if (!DATE_FIELDS.includes(key) || !val) return true;
-          return !isNaN(new Date(val));
-        })
-        .map(([key, val]) => {
-          if (DATE_FIELDS.includes(key) && val) {
-            return [key, new Date(val).toISOString()];
-          }
-          return [key, val];
-        })
-    );
+    try {
+      const DATE_FIELDS = ['next_follow_up', 'last_action'];
+      const payload = Object.fromEntries(
+        Object.entries(form)
+          .filter(([key, val]) => {
+            if (!DATE_FIELDS.includes(key) || !val) return true;
+            return !isNaN(new Date(val));
+          })
+          .map(([key, val]) => {
+            if (DATE_FIELDS.includes(key) && val) {
+              return [key, new Date(val).toISOString()];
+            }
+            return [key, val];
+          })
+      );
 
-    await entity.update(producer.id, payload);
-    toast.success('Productor actualizado');
-    setSaving(false);
-    onSaved?.();
-    onClose();
+      await entity.update(producer.id, payload);
+      toast.success('Productor actualizado');
+      onSaved?.();
+      onClose();
+    } catch {
+      toast.error('Error al guardar. Intenta de nuevo.');
+      return;
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -137,14 +143,33 @@ export default function QuickEditModal({ producer, producerType, onClose, onSave
           )}
 
           {producerType === 'pl' && (
-            <div className="grid grid-cols-2 gap-4">
-              <Field label="Artist">
-                <input className={inputCls} value={form.artist || ''} onChange={e => set('artist', e.target.value)} />
+            <>
+              <div className="grid grid-cols-2 gap-4">
+                <Field label="Artist">
+                  <input className={inputCls} value={form.artist || ''} onChange={e => set('artist', e.target.value)} />
+                </Field>
+                <Field label="Song">
+                  <input className={inputCls} value={form.song || ''} onChange={e => set('song', e.target.value)} />
+                </Field>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <Field label="Donde Enviar">
+                  <input className={inputCls} value={form.donde_enviar || ''} onChange={e => set('donde_enviar', e.target.value)} />
+                </Field>
+                <Field label="Que Enviar">
+                  <input className={inputCls} value={form.que_enviar || ''} onChange={e => set('que_enviar', e.target.value)} />
+                </Field>
+              </div>
+
+              <Field label="Highlights / Placements">
+                <textarea className={`${inputCls} resize-none`} rows={2} value={form.highlights_placements || ''} onChange={e => set('highlights_placements', e.target.value)} />
               </Field>
-              <Field label="Song">
-                <input className={inputCls} value={form.song || ''} onChange={e => set('song', e.target.value)} />
+
+              <Field label="Phone">
+                <input className={inputCls} value={form.phone || ''} onChange={e => set('phone', e.target.value)} />
               </Field>
-            </div>
+            </>
           )}
 
           <Field label="Style">

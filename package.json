@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint . --quiet",
     "lint:fix": "eslint . --fix",
+    "typecheck": "tsc --noEmit",
     "postinstall": "prisma generate"
   },
   "dependencies": {

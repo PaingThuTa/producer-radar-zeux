@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api-client';
 import { MessageCircle, RefreshCw, Check, Instagram, Mail, Pencil, Shuffle } from 'lucide-react';
@@ -7,7 +7,6 @@ import { motion } from 'framer-motion';
 import PriorityBar from '@/components/shared/PriorityBar';
 import StatusBadge from '@/components/shared/StatusBadge';
 import QuickEditModal from '@/components/shared/QuickEditModal';
-import { useAutoAdvanceStatus } from '@/components/shared/useAutoAdvanceStatus';
 import { toast } from 'sonner';
 
 const styleColors = {
@@ -91,14 +90,31 @@ export default function DailyContacts() {
   const [editProducer, setEditProducer] = useState(null);
   const [filter, setFilter] = useState('all');
   const [selectedFollowUps, setSelectedFollowUps] = useState(new Set());
+  const lastSelectedKey = useRef(null);
 
-  function toggleFollowUpSelection(key) {
+  function toggleFollowUpSelection(key, event, allItems) {
+    if (event.shiftKey && lastSelectedKey.current) {
+      const keys = allItems.map(p => `${p._type}-${p.id}`);
+      const fromIdx = keys.indexOf(lastSelectedKey.current);
+      const toIdx = keys.indexOf(key);
+      if (fromIdx !== -1 && toIdx !== -1) {
+        const [start, end] = fromIdx < toIdx ? [fromIdx, toIdx] : [toIdx, fromIdx];
+        const rangeKeys = keys.slice(start, end + 1);
+        setSelectedFollowUps(prev => {
+          const next = new Set(prev);
+          rangeKeys.forEach(k => next.add(k));
+          return next;
+        });
+        return;
+      }
+    }
     setSelectedFollowUps(prev => {
       const next = new Set(prev);
       if (next.has(key)) next.delete(key);
       else next.add(key);
       return next;
     });
+    lastSelectedKey.current = key;
   }
 
   const { data: ytProducers = [] } = useQuery({
@@ -213,11 +229,6 @@ export default function DailyContacts() {
 
   const today = new Date(); today.setHours(0,0,0,0);
 
-  useAutoAdvanceStatus(ytProducers, plProducers, () => {
-    queryClient.invalidateQueries({ queryKey: ['youtube-producers'] });
-    queryClient.invalidateQueries({ queryKey: ['placement-producers'] });
-  });
-
   // Daily DMs: solo por contactar, top por prioridad
   const dailyDMs = [
     ...ytProducers.filter(p => p.status === 'por contactar').map(p => ({ ...p, _type: 'yt' })),
@@ -313,8 +324,8 @@ export default function DailyContacts() {
               <input
                 type="checkbox"
                 checked={isSelected}
-                onChange={() => toggleFollowUpSelection(rowKey)}
-                className={`w-4 h-4 flex-shrink-0 rounded-sm cursor-pointer transition-opacity mt-0.5 sm:mt-0 ${isSelected ? 'accent-[#3b82f6] opacity-100' : 'accent-[#3f3f46] opacity-30 hover:opacity-70'}`}
+                onChange={(e) => toggleFollowUpSelection(rowKey, e, allItems)}
+                className={`w-4 h-4 flex-shrink-0 rounded-sm cursor-pointer transition-opacity mt-0.5 sm:mt-0 ${isSelected ? 'accent-amber-400 opacity-100' : 'accent-[#3f3f46] opacity-30 hover:opacity-70'}`}
               />
               {/* Row 1: name + instagram + badges (mobile & desktop) */}
               <div className="flex-1 min-w-0">
