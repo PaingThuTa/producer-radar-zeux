@@ -7,7 +7,7 @@ import { motion } from 'framer-motion';
 import StatCard from '@/components/dashboard/StatCard';
 import StatusBadge from '@/components/shared/StatusBadge';
 import PriorityBar from '@/components/shared/PriorityBar';
-import QuickEditModal from '@/components/shared/QuickEditModal';
+import ProducerProfile from '@/components/shared/ProducerProfile';
 
 function getProfileType(producerType) {
   return producerType === 'yt' ? 'youtube' : 'placement';
@@ -315,13 +315,30 @@ export default function Dashboard() {
         </motion.div>
       </div>
 
-      <QuickEditModal
+      <ProducerProfile
         producer={editProducer}
-        producerType={editProducer?._type}
+        type={getProfileType(editProducer?._type)}
         onClose={() => setEditProducer(null)}
-        onSaved={() => {
+        onSave={async (data) => {
+          const payload = buildProducerPayload(data);
+          if (editProducer?._type === 'yt') {
+            await api.entities.YouTubeProducer.update(editProducer.id, payload);
+          } else {
+            await api.entities.PlacementProducer.update(editProducer.id, payload);
+          }
           queryClient.invalidateQueries({ queryKey: ['youtube-producers'] });
           queryClient.invalidateQueries({ queryKey: ['placement-producers'] });
+          setEditProducer(null);
+        }}
+        onDelete={async (id) => {
+          if (editProducer?._type === 'yt') {
+            await api.entities.YouTubeProducer.delete(id);
+          } else {
+            await api.entities.PlacementProducer.delete(id);
+          }
+          queryClient.invalidateQueries({ queryKey: ['youtube-producers'] });
+          queryClient.invalidateQueries({ queryKey: ['placement-producers'] });
+          setEditProducer(null);
         }}
       />
     </div>
