@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api-client';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { Search, Plus } from 'lucide-react';
+import { Search, Plus, Eye } from 'lucide-react';
 import ProducerTable from '@/components/shared/ProducerTable';
 import Pagination from '@/components/shared/Pagination';
 import ProducerProfile from '@/components/shared/ProducerProfile';
@@ -16,6 +16,10 @@ import { toast } from 'sonner';
 
 const statuses = ['all', 'por contactar', 'contactado', 'follow up 1', 'follow up 2', 'follow up 3', 'follow up 4', 'follow up 5', 'connection', 'archivado', 'eliminado'];
 const ytPriorities = ['all', '1', '2', '3', '4', '5'];
+const ALWAYS_VISIBLE = ['name', 'instagram', 'status', 'priority'];
+const OPTIONAL_COLS = ['youtube', 'subscribers', 'style', 'placements', 'next_follow_up', 'last_action', 'type', 'email', 'donde_enviar', 'que_enviar', 're_dms', 'followers_ig', 'notes'];
+const COL_LABELS = { youtube: 'YouTube', subscribers: 'Subscribers', style: 'Style', placements: 'Placements', next_follow_up: 'Next FU', last_action: 'Last Action', type: 'Type', email: 'Email', donde_enviar: 'Donde Enviar', que_enviar: 'Qué Enviar', re_dms: 'Re-DMs', followers_ig: 'IG Followers', notes: 'Notes' };
+const LS_KEY = 'youtube-col-visibility';
 const subRanges = [
   { label: 'All Subscribers', value: 'all' },
   { label: '< 1K', value: 'lt1k' },
@@ -24,6 +28,48 @@ const subRanges = [
   { label: '100K – 500K', value: '100k-500k' },
   { label: '500K+', value: 'gt500k' },
 ];
+const ADVANCED_FILTER_FIELDS = [
+  { value: 'artist', label: 'Artist' },
+  { value: 'highlights_placements', label: 'Placements' },
+  { value: 'donde_enviar', label: 'Donde Enviar' },
+  { value: 'que_enviar', label: 'Qué Enviar' },
+  { value: 'status', label: 'Status' },
+  { value: 'style', label: 'Style' },
+  { value: 're_dms', label: 'Re-DMs' },
+  { value: 'name', label: 'Name' },
+  { value: 'instagram', label: 'Instagram' },
+  { value: 'email', label: 'Email' },
+  { value: 'notes', label: 'Notes' },
+];
+const ADVANCED_FILTER_OPERATORS = [
+  { value: 'contains', label: 'contains' },
+  { value: 'does_not_contain', label: 'does not contain' },
+  { value: 'is', label: 'is' },
+  { value: 'is_not', label: 'is not' },
+  { value: 'is_empty', label: 'is empty' },
+  { value: 'is_not_empty', label: 'is not empty' },
+];
+
+function createFilterRule() {
+  return { id: crypto.randomUUID(), field: 'artist', operator: 'contains', value: '' };
+}
+
+function normalizeFilterValue(value) {
+  return String(value ?? '').trim().toLowerCase();
+}
+
+function matchesAdvancedRule(producer, rule) {
+  const fieldValue = normalizeFilterValue(producer?.[rule.field]);
+  const ruleValue = normalizeFilterValue(rule.value);
+
+  if (rule.operator === 'is_empty') return fieldValue === '';
+  if (rule.operator === 'is_not_empty') return fieldValue !== '';
+  if (rule.operator === 'contains') return fieldValue.includes(ruleValue);
+  if (rule.operator === 'does_not_contain') return !fieldValue.includes(ruleValue);
+  if (rule.operator === 'is') return fieldValue === ruleValue;
+  if (rule.operator === 'is_not') return fieldValue !== ruleValue;
+  return true;
+}
 
 export default function YouTubeProducers() {
   const [search, setSearch] = useState('');
@@ -31,9 +77,20 @@ export default function YouTubeProducers() {
   const [styleFilter, setStyleFilter] = useState('all');
   const [subFilter, setSubFilter] = useState('all');
   const [priorityFilter, setPriorityFilter] = useState('all');
+  const [advancedFilters, setAdvancedFilters] = useState([]);
   const [selected, setSelected] = useState(null);
   const [showAdd, setShowAdd] = useState(false);
   const [selectedIds, setSelectedIds] = useState(new Set());
+  const [colVisibility, setColVisibility] = useState(() => {
+    if (typeof window === 'undefined') return Object.fromEntries(OPTIONAL_COLS.map(k => [k, true]));
+    try {
+      const stored = localStorage.getItem(LS_KEY);
+      if (stored) return { ...Object.fromEntries(OPTIONAL_COLS.map(k => [k, true])), ...JSON.parse(stored) };
+    } catch {}
+    return Object.fromEntries(OPTIONAL_COLS.map(k => [k, true]));
+  });
+  const [showColPanel, setShowColPanel] = useState(false);
+  const colPanelRef = useRef(null);
   const [page, setPage] = useState(1);
   const PAGE_SIZE = 50;
 
@@ -48,6 +105,17 @@ export default function YouTubeProducers() {
     () => ['all', ...[...new Set(producers.map(p => p.style).filter(Boolean))].sort()],
     [producers]
   );
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (colPanelRef.current && !colPanelRef.current.contains(event.target)) {
+        setShowColPanel(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const updateMutation = useMutation({
     mutationFn: ({ id, data }) => api.entities.YouTubeProducer.update(id, data),
@@ -68,6 +136,7 @@ export default function YouTubeProducers() {
   });
 
   const HIDDEN = ['archivado', 'eliminado', 'contactado', 'follow up 1', 'follow up 2', 'follow up 3', 'follow up 4', 'follow up 5'];
+  const activeAdvancedFilters = advancedFilters.filter(rule => rule.operator === 'is_empty' || rule.operator === 'is_not_empty' || normalizeFilterValue(rule.value) !== '');
   const filtered = producers.filter(p => {
     const matchSearch = !search || p.name?.toLowerCase().includes(search.toLowerCase()) || p.instagram?.toLowerCase().includes(search.toLowerCase());
     const matchStatus = statusFilter === 'all' || p.status === statusFilter;
@@ -81,7 +150,8 @@ export default function YouTubeProducers() {
       (subFilter === '100k-500k' && s >= 100000 && s < 500000) ||
       (subFilter === 'gt500k' && s >= 500000);
     const matchPriority = priorityFilter === 'all' || p.priority === parseInt(priorityFilter);
-    return matchSearch && matchStatus && matchHidden && matchStyle && matchSubs && matchPriority;
+    const matchAdvanced = activeAdvancedFilters.every(rule => matchesAdvancedRule(p, rule));
+    return matchSearch && matchStatus && matchHidden && matchStyle && matchSubs && matchPriority && matchAdvanced;
   });
 
   const statusCounts = filtered.reduce((acc, p) => {
@@ -95,7 +165,7 @@ export default function YouTubeProducers() {
   const handlePageChange = (p) => { setPage(p); window.scrollTo({ top: 0, behavior: 'smooth' }); };
 
   // Reset to page 1 when filters change
-  useEffect(() => { setPage(1); }, [search, statusFilter, styleFilter, subFilter, priorityFilter]);
+  useEffect(() => { setPage(1); }, [search, statusFilter, styleFilter, subFilter, priorityFilter, advancedFilters]);
 
   const toggleSelect = (id) => {
     setSelectedIds(prev => {
@@ -135,6 +205,19 @@ export default function YouTubeProducers() {
     setSelectedIds(new Set());
   };
 
+  const toggleCol = (key) => {
+    setColVisibility(prev => {
+      const next = { ...prev, [key]: !prev[key] };
+      localStorage.setItem(LS_KEY, JSON.stringify(next));
+      return next;
+    });
+  };
+
+  const visibleColumns = [
+    ...ALWAYS_VISIBLE,
+    ...OPTIONAL_COLS.filter(k => colVisibility[k]),
+  ];
+
   const handleRowClick = (producer) => {
     setSelected(producer);
   };
@@ -147,6 +230,32 @@ export default function YouTubeProducers() {
           <p className="text-[#71717a] text-sm mt-1">{producers.length} producers discovered</p>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
+          <div className="relative" ref={colPanelRef}>
+            <Button
+              onClick={() => setShowColPanel(v => !v)}
+              variant="outline"
+              size="sm"
+              className="border-[#27272a] bg-[#18181b] text-[#a1a1aa] hover:text-white hover:bg-[#27272a]"
+            >
+              <Eye className="w-4 h-4 mr-1.5" /> Columns
+            </Button>
+            {showColPanel && (
+              <div className="absolute right-0 top-full mt-1 z-50 bg-[#1e1e22] border border-[#27272a] rounded-lg p-3 w-52 shadow-xl">
+                <p className="text-[#71717a] text-xs font-medium mb-2 uppercase tracking-wide">Toggle Columns</p>
+                {OPTIONAL_COLS.map(key => (
+                  <label key={key} className="flex items-center gap-2 py-1 cursor-pointer group">
+                    <input
+                      type="checkbox"
+                      checked={colVisibility[key] ?? true}
+                      onChange={() => toggleCol(key)}
+                      className="w-3.5 h-3.5 rounded-sm accent-[#3b82f6] cursor-pointer"
+                    />
+                    <span className="text-sm text-[#a1a1aa] group-hover:text-white transition-colors">{COL_LABELS[key]}</span>
+                  </label>
+                ))}
+              </div>
+            )}
+          </div>
           <CsvImportExport
             producers={producers}
             entity={api.entities.YouTubeProducer}
@@ -160,7 +269,64 @@ export default function YouTubeProducers() {
       </div>
 
       {/* Filters */}
-      <div className="flex flex-wrap gap-3">
+      <div className="space-y-3">
+        <div className="flex items-center justify-between gap-3">
+          <p className="text-xs uppercase tracking-wide text-[#71717a]">Filters</p>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setAdvancedFilters(prev => [...prev, createFilterRule()])}
+            className="border-[#27272a] bg-[#18181b] text-[#a1a1aa] hover:text-white hover:bg-[#27272a]"
+          >
+            Add Filter
+          </Button>
+        </div>
+        {advancedFilters.length > 0 && (
+          <div className="space-y-2 rounded-xl border border-[#27272a] bg-[#18181b] p-3">
+            {advancedFilters.map(rule => {
+              const hideValueInput = rule.operator === 'is_empty' || rule.operator === 'is_not_empty';
+              return (
+                <div key={rule.id} className="flex flex-wrap items-center gap-2">
+                  <Select value={rule.field} onValueChange={value => setAdvancedFilters(prev => prev.map(item => item.id === rule.id ? { ...item, field: value } : item))}>
+                    <SelectTrigger className="w-full sm:w-[180px] bg-[#18181b] border-[#27272a] text-white text-sm">
+                      <SelectValue placeholder="Property" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-[#1e1e22] border-[#27272a]">
+                      {ADVANCED_FILTER_FIELDS.map(field => <SelectItem key={field.value} value={field.value} className="text-white">{field.label}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                  <Select value={rule.operator} onValueChange={value => setAdvancedFilters(prev => prev.map(item => item.id === rule.id ? { ...item, operator: value } : item))}>
+                    <SelectTrigger className="w-full sm:w-[180px] bg-[#18181b] border-[#27272a] text-white text-sm">
+                      <SelectValue placeholder="Operator" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-[#1e1e22] border-[#27272a]">
+                      {ADVANCED_FILTER_OPERATORS.map(operator => <SelectItem key={operator.value} value={operator.value} className="text-white">{operator.label}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                  {!hideValueInput && (
+                    <Input
+                      value={rule.value}
+                      onChange={e => setAdvancedFilters(prev => prev.map(item => item.id === rule.id ? { ...item, value: e.target.value } : item))}
+                      placeholder="Value"
+                      className="w-full sm:flex-1 bg-[#18181b] border-[#27272a] text-white text-sm"
+                    />
+                  )}
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setAdvancedFilters(prev => prev.filter(item => item.id !== rule.id))}
+                    className="text-[#71717a] hover:text-white hover:bg-[#27272a]"
+                  >
+                    Remove
+                  </Button>
+                </div>
+              );
+            })}
+          </div>
+        )}
+        <div className="flex flex-wrap gap-3">
         <div className="relative flex-1 min-w-0 w-full sm:w-auto sm:max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#71717a]" />
           <Input value={search} onChange={e => setSearch(e.target.value)}
@@ -204,6 +370,7 @@ export default function YouTubeProducers() {
           </SelectContent>
         </Select>
       </div>
+      </div>
 
       <BulkActionBar
         selectedCount={selectedIds.size}
@@ -226,7 +393,7 @@ export default function YouTubeProducers() {
 
       <ProducerTable
         producers={paginated}
-        columns={['name', 'instagram', 'youtube', 'subscribers', 'style', 'status', 'priority']}
+        columns={visibleColumns}
         producerType="youtube"
         onRowClick={handleRowClick}
         selectedIds={selectedIds}

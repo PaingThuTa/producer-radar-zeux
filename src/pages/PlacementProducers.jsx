@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api-client';
 import { Input } from '@/components/ui/input';
@@ -21,6 +21,49 @@ const ALWAYS_VISIBLE = ['name', 'instagram', 'priority', 'status'];
 const OPTIONAL_COLS = ['song', 'artist', 'style', 'email', 'phone', 'highlights_placements', 'donde_enviar', 'que_enviar', 're_dms', 'followers_ig', 'notes'];
 const COL_LABELS = { song: 'Song', artist: 'Artist', style: 'Style', email: 'Email', phone: 'Phone', highlights_placements: 'Placements', donde_enviar: 'Donde Enviar', que_enviar: 'Qué Enviar', re_dms: 'Re-DMs', followers_ig: 'IG Followers', notes: 'Notes' };
 const LS_KEY = 'placement-col-visibility';
+const ADVANCED_FILTER_FIELDS = [
+  { value: 'artist', label: 'Artist' },
+  { value: 'highlights_placements', label: 'Placements' },
+  { value: 'donde_enviar', label: 'Donde Enviar' },
+  { value: 'que_enviar', label: 'Qué Enviar' },
+  { value: 'status', label: 'Status' },
+  { value: 'style', label: 'Style' },
+  { value: 're_dms', label: 'Re-DMs' },
+  { value: 'name', label: 'Name' },
+  { value: 'instagram', label: 'Instagram' },
+  { value: 'email', label: 'Email' },
+  { value: 'phone', label: 'Phone' },
+  { value: 'notes', label: 'Notes' },
+];
+const ADVANCED_FILTER_OPERATORS = [
+  { value: 'contains', label: 'contains' },
+  { value: 'does_not_contain', label: 'does not contain' },
+  { value: 'is', label: 'is' },
+  { value: 'is_not', label: 'is not' },
+  { value: 'is_empty', label: 'is empty' },
+  { value: 'is_not_empty', label: 'is not empty' },
+];
+
+function createFilterRule() {
+  return { id: crypto.randomUUID(), field: 'artist', operator: 'contains', value: '' };
+}
+
+function normalizeFilterValue(value) {
+  return String(value ?? '').trim().toLowerCase();
+}
+
+function matchesAdvancedRule(producer, rule) {
+  const fieldValue = normalizeFilterValue(producer?.[rule.field]);
+  const ruleValue = normalizeFilterValue(rule.value);
+
+  if (rule.operator === 'is_empty') return fieldValue === '';
+  if (rule.operator === 'is_not_empty') return fieldValue !== '';
+  if (rule.operator === 'contains') return fieldValue.includes(ruleValue);
+  if (rule.operator === 'does_not_contain') return !fieldValue.includes(ruleValue);
+  if (rule.operator === 'is') return fieldValue === ruleValue;
+  if (rule.operator === 'is_not') return fieldValue !== ruleValue;
+  return true;
+}
 
 export default function PlacementProducers() {
   const [search, setSearch] = useState('');
@@ -32,10 +75,12 @@ export default function PlacementProducers() {
   const [reDmsFilter, setReDmsFilter] = useState('all');
   const [dondeEnviarFilter, setDondeEnviarFilter] = useState('');
   const [queEnviarFilter, setQueEnviarFilter] = useState('');
+  const [advancedFilters, setAdvancedFilters] = useState([]);
   const [colVisibility, setColVisibility] = useState(() => {
+    if (typeof window === 'undefined') return Object.fromEntries(OPTIONAL_COLS.map(k => [k, true]));
     try {
       const stored = localStorage.getItem(LS_KEY);
-      if (stored) return JSON.parse(stored);
+      if (stored) return { ...Object.fromEntries(OPTIONAL_COLS.map(k => [k, true])), ...JSON.parse(stored) };
     } catch {}
     return Object.fromEntries(OPTIONAL_COLS.map(k => [k, true]));
   });
@@ -80,7 +125,7 @@ export default function PlacementProducers() {
     },
   });
 
-  const styleOptions = ['all', ...new Set(producers.map(p => p.style).filter(Boolean))];
+  const styleOptions = useMemo(() => ['all', ...new Set(producers.map(p => p.style).filter(Boolean))], [producers]);
 
   const toggleCol = (key) => {
     setColVisibility(prev => {
@@ -95,6 +140,7 @@ export default function PlacementProducers() {
     ...OPTIONAL_COLS.filter(k => colVisibility[k]),
   ];
 
+  const activeAdvancedFilters = advancedFilters.filter(rule => rule.operator === 'is_empty' || rule.operator === 'is_not_empty' || normalizeFilterValue(rule.value) !== '');
   const filtered = producers.filter(p => {
     const matchSearch = !search || p.name?.toLowerCase().includes(search.toLowerCase()) || p.artist?.toLowerCase().includes(search.toLowerCase());
     const matchStatus = statusFilter === 'all' || p.status === statusFilter;
@@ -104,7 +150,8 @@ export default function PlacementProducers() {
     const matchReDms = reDmsFilter === 'all' || p.re_dms === reDmsFilter;
     const matchDonde = !dondeEnviarFilter || p.donde_enviar?.toLowerCase().includes(dondeEnviarFilter.toLowerCase());
     const matchQue = !queEnviarFilter || p.que_enviar?.toLowerCase().includes(queEnviarFilter.toLowerCase());
-    return matchSearch && matchStatus && matchPriority && matchArtist && matchStyle && matchReDms && matchDonde && matchQue;
+    const matchAdvanced = activeAdvancedFilters.every(rule => matchesAdvancedRule(p, rule));
+    return matchSearch && matchStatus && matchPriority && matchArtist && matchStyle && matchReDms && matchDonde && matchQue && matchAdvanced;
   });
 
   const statusCounts = filtered.reduce((acc, p) => {
@@ -117,7 +164,7 @@ export default function PlacementProducers() {
 
   const handlePageChange = (p) => { setPage(p); window.scrollTo({ top: 0, behavior: 'smooth' }); };
 
-  useEffect(() => { setPage(1); }, [search, statusFilter, priorityFilter, artistFilter, styleFilter, reDmsFilter, dondeEnviarFilter, queEnviarFilter]);
+  useEffect(() => { setPage(1); }, [search, statusFilter, priorityFilter, artistFilter, styleFilter, reDmsFilter, dondeEnviarFilter, queEnviarFilter, advancedFilters]);
 
   const toggleSelect = (id) => {
     setSelectedIds(prev => {
@@ -207,7 +254,64 @@ export default function PlacementProducers() {
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-3">
+      <div className="space-y-3">
+        <div className="flex items-center justify-between gap-3">
+          <p className="text-xs uppercase tracking-wide text-[#71717a]">Filters</p>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setAdvancedFilters(prev => [...prev, createFilterRule()])}
+            className="border-[#27272a] bg-[#18181b] text-[#a1a1aa] hover:text-white hover:bg-[#27272a]"
+          >
+            Add Filter
+          </Button>
+        </div>
+        {advancedFilters.length > 0 && (
+          <div className="space-y-2 rounded-xl border border-[#27272a] bg-[#18181b] p-3">
+            {advancedFilters.map(rule => {
+              const hideValueInput = rule.operator === 'is_empty' || rule.operator === 'is_not_empty';
+              return (
+                <div key={rule.id} className="flex flex-wrap items-center gap-2">
+                  <Select value={rule.field} onValueChange={value => setAdvancedFilters(prev => prev.map(item => item.id === rule.id ? { ...item, field: value } : item))}>
+                    <SelectTrigger className="w-full sm:w-[180px] bg-[#18181b] border-[#27272a] text-white text-sm rounded-lg">
+                      <SelectValue placeholder="Property" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-[#1e1e22] border-[#27272a]">
+                      {ADVANCED_FILTER_FIELDS.map(field => <SelectItem key={field.value} value={field.value} className="text-white">{field.label}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                  <Select value={rule.operator} onValueChange={value => setAdvancedFilters(prev => prev.map(item => item.id === rule.id ? { ...item, operator: value } : item))}>
+                    <SelectTrigger className="w-full sm:w-[180px] bg-[#18181b] border-[#27272a] text-white text-sm rounded-lg">
+                      <SelectValue placeholder="Operator" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-[#1e1e22] border-[#27272a]">
+                      {ADVANCED_FILTER_OPERATORS.map(operator => <SelectItem key={operator.value} value={operator.value} className="text-white">{operator.label}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                  {!hideValueInput && (
+                    <Input
+                      value={rule.value}
+                      onChange={e => setAdvancedFilters(prev => prev.map(item => item.id === rule.id ? { ...item, value: e.target.value } : item))}
+                      placeholder="Value"
+                      className="w-full sm:flex-1 bg-[#18181b] border-[#27272a] text-white text-sm rounded-lg"
+                    />
+                  )}
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setAdvancedFilters(prev => prev.filter(item => item.id !== rule.id))}
+                    className="text-[#71717a] hover:text-white hover:bg-[#27272a]"
+                  >
+                    Remove
+                  </Button>
+                </div>
+              );
+            })}
+          </div>
+        )}
+        <div className="flex flex-wrap gap-3">
         <div className="relative flex-1 min-w-0 w-full sm:w-auto sm:max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#71717a]" />
           <Input value={search} onChange={e => setSearch(e.target.value)}
@@ -261,6 +365,7 @@ export default function PlacementProducers() {
         <Input value={queEnviarFilter} onChange={e => setQueEnviarFilter(e.target.value)}
           placeholder="Qué enviar..."
           className="w-full sm:w-[150px] bg-[#18181b] border-[#27272a] text-white text-sm rounded-lg" />
+      </div>
       </div>
 
       <BulkActionBar
