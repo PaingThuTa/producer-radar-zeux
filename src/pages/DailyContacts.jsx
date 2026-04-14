@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api-client';
 import { MessageCircle, RefreshCw, Check, Instagram, Mail, Pencil, Shuffle } from 'lucide-react';
@@ -85,37 +85,58 @@ function GroupHeader({ label, color, count, textColor, badgeClass }) {
   );
 }
 
+function getRowKey(producer) {
+  return `${producer._type}-${producer.id}`;
+}
+
+function getProfileType(producerType) {
+  return producerType === 'yt' ? 'youtube' : 'placement';
+}
+
+function normalizeDateValue(value) {
+  if (!value) return null;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+  return date.toISOString().slice(0, 10);
+}
+
+function buildProducerPayload(data) {
+  return {
+    ...data,
+    last_action: normalizeDateValue(data.last_action),
+    next_follow_up: normalizeDateValue(data.next_follow_up),
+  };
+}
+
 export default function DailyContacts() {
   const queryClient = useQueryClient();
   const [editProducer, setEditProducer] = useState(null);
   const [filter, setFilter] = useState('all');
   const [selectedFollowUps, setSelectedFollowUps] = useState(new Set());
-  const lastSelectedKey = useRef(null);
+  const lastSelectedIdx = useRef(null);
 
-  function toggleFollowUpSelection(key, event, allItems) {
-    if (event.shiftKey && lastSelectedKey.current) {
-      const keys = allItems.map(p => `${p._type}-${p.id}`);
-      const fromIdx = keys.indexOf(lastSelectedKey.current);
-      const toIdx = keys.indexOf(key);
-      if (fromIdx !== -1 && toIdx !== -1) {
-        const [start, end] = fromIdx < toIdx ? [fromIdx, toIdx] : [toIdx, fromIdx];
-        const rangeKeys = keys.slice(start, end + 1);
-        setSelectedFollowUps(prev => {
-          const next = new Set(prev);
-          rangeKeys.forEach(k => next.add(k));
-          return next;
-        });
-        return;
-      }
+  const toggleFollowUpSelection = (key, idx, shiftKey, renderedItems) => {
+    if (shiftKey && lastSelectedIdx.current !== null) {
+      const start = Math.min(lastSelectedIdx.current, idx);
+      const end = Math.max(lastSelectedIdx.current, idx);
+      const rangeKeys = renderedItems.slice(start, end + 1).map(getRowKey);
+      setSelectedFollowUps(prev => {
+        const next = new Set(prev);
+        rangeKeys.forEach(rangeKey => next.add(rangeKey));
+        return next;
+      });
+      lastSelectedIdx.current = idx;
+      return;
     }
+
     setSelectedFollowUps(prev => {
       const next = new Set(prev);
       if (next.has(key)) next.delete(key);
       else next.add(key);
       return next;
     });
-    lastSelectedKey.current = key;
-  }
+    lastSelectedIdx.current = idx;
+  };
 
   const { data: ytProducers = [] } = useQuery({
     queryKey: ['youtube-producers'],
@@ -251,6 +272,14 @@ export default function DailyContacts() {
   const todayItems = followUps.filter(p => p.next_follow_up && toDateStr(p.next_follow_up) === todayStr);
   const upcomingItems = followUps.filter(p => p.next_follow_up && toDateStr(p.next_follow_up) > todayStr);
   const dueCount = overdueItems.length + todayItems.length;
+  const showOverdue = filter === 'all' || filter === 'overdue';
+  const showToday = filter === 'all' || filter === 'today';
+  const showUpcoming = filter === 'all' || filter === 'upcoming';
+  const visibleFollowUps = useMemo(() => ([
+    ...(showOverdue ? overdueItems : []),
+    ...(showToday ? todayItems : []),
+    ...(showUpcoming ? upcomingItems : []),
+  ]), [showOverdue, showToday, showUpcoming, overdueItems, todayItems, upcomingItems]);
 
   return (
     <div className="space-y-6 sm:space-y-8 md:space-y-10">
@@ -314,17 +343,23 @@ export default function DailyContacts() {
             No follow ups pendientes
           </div>
         ) : (() => {
-          const allItems = [...overdueItems, ...todayItems, ...upcomingItems];
+          const renderedItems = visibleFollowUps;
+          const renderedKeys = renderedItems.map(getRowKey);
           const renderRow = (p) => {
-            const rowKey = `${p._type}-${p.id}`;
+            const rowKey = getRowKey(p);
+            const rowIdx = renderedKeys.indexOf(rowKey);
             const isSelected = selectedFollowUps.has(rowKey);
             return (
-            <div key={p.id} className={`flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 px-3 sm:px-5 py-3 sm:py-3 w-full hover:bg-white/[0.02] ${isSelected ? 'bg-amber-500/5' : ''}`}>
+            <div key={rowKey} className={`flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 px-3 sm:px-5 py-3 sm:py-3 w-full hover:bg-white/[0.02] ${isSelected ? 'bg-amber-500/5' : ''}`}>
               {/* Checkbox */}
               <input
                 type="checkbox"
                 checked={isSelected}
-                onChange={(e) => toggleFollowUpSelection(rowKey, e, allItems)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggleFollowUpSelection(rowKey, rowIdx, e.shiftKey, renderedItems);
+                }}
+                onChange={() => {}}
                 className={`w-4 h-4 flex-shrink-0 rounded-sm cursor-pointer transition-opacity mt-0.5 sm:mt-0 ${isSelected ? 'accent-amber-400 opacity-100' : 'accent-[#3f3f46] opacity-30 hover:opacity-70'}`}
               />
               {/* Row 1: name + instagram + badges (mobile & desktop) */}
@@ -367,7 +402,7 @@ export default function DailyContacts() {
                     <Pencil className="w-3.5 h-3.5" />
                   </Button>
                   <Button size="sm" variant="ghost"
-                    onClick={() => handleRandomDate(p, allItems)}
+                    onClick={() => handleRandomDate(p, renderedItems)}
                     className="text-zinc-400 hover:text-zinc-200 hover:bg-zinc-700/50 whitespace-nowrap h-11 sm:h-auto">
                     <Shuffle className="w-3.5 h-3.5 mr-1" /> Random Date
                   </Button>
@@ -383,10 +418,6 @@ export default function DailyContacts() {
             </div>
           );};
 
-
-          const showOverdue = filter === 'all' || filter === 'overdue';
-          const showToday = filter === 'all' || filter === 'today';
-          const showUpcoming = filter === 'all' || filter === 'upcoming';
 
           return (
             <div className="bg-[#18181b] border border-[#27272a] rounded-xl divide-y divide-[#27272a]">

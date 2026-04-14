@@ -8,7 +8,25 @@ import StatCard from '@/components/dashboard/StatCard';
 import StatusBadge from '@/components/shared/StatusBadge';
 import PriorityBar from '@/components/shared/PriorityBar';
 import QuickEditModal from '@/components/shared/QuickEditModal';
-import { useAutoAdvanceStatus } from '@/components/shared/useAutoAdvanceStatus';
+
+function getProfileType(producerType) {
+  return producerType === 'yt' ? 'youtube' : 'placement';
+}
+
+function normalizeDateValue(value) {
+  if (!value) return null;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+  return date.toISOString().slice(0, 10);
+}
+
+function buildProducerPayload(data) {
+  return {
+    ...data,
+    last_action: normalizeDateValue(data.last_action),
+    next_follow_up: normalizeDateValue(data.next_follow_up),
+  };
+}
 
 export default function Dashboard() {
   const queryClient = useQueryClient();
@@ -54,11 +72,6 @@ export default function Dashboard() {
   const dailyFollowUps = [...ytProducers, ...placementProducers]
     .filter(isFollowUpDue)
     .sort((a, b) => (b.priority || 0) - (a.priority || 0));
-
-  useAutoAdvanceStatus(ytProducers, placementProducers, () => {
-    queryClient.invalidateQueries({ queryKey: ['youtube-producers'] });
-    queryClient.invalidateQueries({ queryKey: ['placement-producers'] });
-  });
 
   const topProducers = [...ytProducers, ...placementProducers]
     .sort((a, b) => (b.priority || 0) - (a.priority || 0))
